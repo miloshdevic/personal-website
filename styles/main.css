@@ -1,0 +1,116 @@
+/* Main CSS - Variables & Reset */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Base Variables (Shared) */
+    --font-heading: 'Space Grotesk', sans-serif;
+    --font-body: 'Outfit', sans-serif;
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 2rem;
+    --spacing-lg: 4rem;
+    --spacing-xl: 8rem;
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    --text-accent: #38bdf8;
+    /* Sky Blue */
+}
+
+[data-theme="dark"] {
+    --bg-primary: #0f172a;
+    /* Deep Midnight Blue */
+    --bg-secondary: #1e293b;
+    /* Lighter Blue-Grey */
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --primary-accent: #7c3aed;
+    --secondary-accent: #0ea5e9;
+    --gradient-main: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+    --header-bg: rgba(15, 23, 42, 0.85);
+}
+
+[data-theme="light"] {
+    --bg-primary: #f1f5f9;
+    /* Slate 100 */
+    --bg-secondary: #e2e8f0;
+    /* Slate 200 */
+    --bg-card: #f8fafc;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --primary-accent: #4f46e5;
+    --secondary-accent: #0284c7;
+    --gradient-main: linear-gradient(135deg, #4f46e5, #0284c7);
+    --header-bg: rgba(241, 245, 249, 0.9);
+    --glass-border: 1px solid rgba(15, 23, 42, 0.08);
+    --text-accent: #0284c7;
+}
+
+body {
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition-fast);
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

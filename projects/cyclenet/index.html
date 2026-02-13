@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhancing CycleNet for Time Series Forecasting | Milosh Devic</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="stylesheet" href="../../styles/layout.css">
+    <link rel="stylesheet" href="../../styles/components.css">
+    <link rel="stylesheet" href="../../styles/animations.css">
+    <link rel="stylesheet" href="../../styles/sections.css">
+    <style>
+        .project-hero {
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+            text-align: center;
+        }
+
+        .project-hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: var(--spacing-sm);
+            line-height: 1.2;
+        }
+
+        .project-content {
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .project-section {
+            margin-bottom: 3rem;
+        }
+
+        .project-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .project-section h3 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--text-accent);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+        }
+
+        .figure-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .figure-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+        }
+
+        .figure-caption {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .abstract-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 3rem;
+        }
+
+        .abstract-card h2 {
+            text-align: center;
+            border: none;
+            margin-bottom: 1rem;
+        }
+
+        .author-list {
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .equation {
+            font-family: serif;
+            font-style: italic;
+            text-align: center;
+            margin: 1.5rem 0;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .grid-figures {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        /* Table Styles */
+        .results-table-container {
+            margin: 2.5rem 0;
+            overflow-x: auto;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .highlight-cell {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../../index.html"
+                style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px; text-decoration: none; color: var(--text-primary);">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../../index.html#about" class="hover-accent">About</a></li>
+                    <li><a href="../../index.html#experience" class="hover-accent">Experience</a></li>
+                    <li><a href="../../index.html#projects" class="hover-accent">Projects</a></li>
+                    <li><a href="../../index.html#publications" class="hover-accent">Publications</a></li>
+                    <li><a href="../../index.html#contact" class="hover-accent">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 80px;">
+        <div class="project-hero fade-in">
+            <a href="../../index.html#projects" class="back-link">← Back to Projects</a>
+            <h1 class="gradient-text">Enhancing CycleNet for Time Series Forecasting</h1>
+            <div class="author-list">
+                Project done by Milosh Devic, Amin Darabi, Chirag Goel and Aayush Bajaj
+            </div>
+            <div class="project-meta">
+                <span><i class="fas fa-university"></i> MILA Institute / Université de Montréal</span>
+                <span><i class="far fa-calendar-alt"></i> Fall 2024</span>
+            </div>
+        </div>
+
+        <div class="project-content">
+            <div class="abstract-card hidden">
+                <h2>Abstract</h2>
+                <p>
+                    Accurate long-term time series forecasting (LTSF) is critical in various domains, such as energy
+                    management, weather prediction, and transportation. CycleNet effectively captures periodicity using
+                    its Residual Cycle Forecasting (RCF) technique. However, its reliance on a Multi-Layer Perceptron
+                    (MLP) backbone limits its ability to model inter-feature relationships in multivariate datasets. In
+                    this work, we address these limitations by introducing two key modifications. First, we replace the
+                    MLP backbone with <strong>Time-GNN</strong> to better capture spatio-temporal dependencies between
+                    features. Second, we enhance the model with <strong>probabilistic forecasting</strong>, enabling it
+                    to output distributions rather than point predictions, thus providing confidence intervals for
+                    improved interpretability and decision-making. Our experiments demonstrate improvements across
+                    several datasets, with Time-GNN enhancing feature dependency modeling and probabilistic forecasting
+                    improving both accuracy and interpretability.
+                </p>
+            </div>
+
+            <section class="project-section hidden">
+                <h2>Introduction</h2>
+                <p>
+                    LTSF plays an important role in various domains, such as energy management, weather prediction, and
+                    transportation systems. Accurate forecasting in these areas enables better decision-making, resource
+                    allocation, and system optimization by anticipating future patterns and anomalies.
+                </p>
+                <p>
+                    CycleNet is a recent state-of-the-art model for LTSF that excels in modeling periodic patterns. It
+                    introduces the RCF technique, which explicitly captures periodic components through learnable
+                    recurrent cycles.
+                </p>
+                <div class="figure-container">
+                    <img src="LTSF.png" alt="Shared daily periodic patterns">
+                    <p class="figure-caption">Figure 1: Shared daily periodic patterns present in the Electricity
+                        dataset.</p>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>CycleNet Architecture</h2>
+                <p>
+                    The model's key innovation lies in its RCF technique, which decomposes input data into periodic and
+                    residual components. The RCF operates in two stages:
+                </p>
+                <ol style="color: var(--text-secondary); margin-left:1.5rem;">
+                    <li><strong>Periodic Pattern Modeling:</strong> Learns periodic patterns using a learnable recurrent
+                        cycle.</li>
+                    <li><strong>Residual Forecasting:</strong> Residual components are fed into a backbone model (Linear
+                        or MLP) to focus on non-periodic variations.</li>
+                </ol>
+                <div class="figure-container">
+                    <img src="cyclenet_architecture.png" alt="CycleNet Architecture">
+                    <p class="figure-caption">Figure 2: CycleNet Architecture showing the RCF module and backbone
+                        options.</p>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Proposed Modifications</h2>
+                <h3>1. Replacing MLP with GNN</h3>
+                <p>
+                    CycleNet's original backbone assumes independence between features. GNNs are well-suited for this
+                    task as they can explicitly model relationships between features. We replaced the MLP with
+                    <strong>TimeGNN</strong>, a computationally efficient GNN that learns a dynamic graph structure for
+                    each sliding window, enabling it to model evolving relationships between channels over time.
+                </p>
+                <div class="figure-container">
+                    <img src="cyclenet_gnn.png" alt="CycleNet/TimeGNN Architecture">
+                    <p class="figure-caption">Figure 3: CycleNet/TimeGNN Architecture.</p>
+                </div>
+
+                <h3>2. Probabilistic Forecasting</h3>
+                <p>
+                    Point predictions do not capture inherent uncertainty. By predicting distributions (mean and
+                    standard deviation), the model provides confidence intervals. We assumed a Gaussian distribution and
+                    modified the architecture to output two values for each time step, using <strong>Gaussian Negative
+                        Log-Likelihood (GaussianNLL)</strong> loss for training.
+                </p>
+                <div class="figure-container">
+                    <img src="probablistic-cyclenet.png" alt="Probabilistic CycleNet Architecture">
+                    <p class="figure-caption">Figure 4: Probabilistic CycleNet Architecture with dual-output MLP for
+                        mean and variance.</p>
+                </div>
+                <div class="equation">
+                    L = ½H Σ [((xₜ₊ₕ - μₜ₊ₕ)² / σ²ₜ₊ₕ) + log(σ²ₜ₊ₕ)]
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Experimental Results</h2>
+                <p>
+                    The proposed modifications to CycleNet demonstrate significant performance gains and comparable
+                    results across various multivariate datasets. The quantitative results are summarized in the tables
+                    below.
+                </p>
+
+                <h3>Table 1: MSE Performance</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-secondary);">
+                    Mean MSE across 7 channels for 720→240 step prediction. The probabilistic extension maintains or
+                    improves performance while providing uncertainty estimates.
+                </p>
+                <div class="results-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dataset</th>
+                                <th>ETTm1</th>
+                                <th>ETTm2</th>
+                                <th>ETTh1</th>
+                                <th>ETTh2</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CycleNet/MLP</td>
+                                <td>0.376</td>
+                                <td>0.141</td>
+                                <td>0.475</td>
+                                <td>0.211</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">CycleNet/MLP-Distribution</td>
+                                <td class="highlight-cell">0.376</td>
+                                <td class="highlight-cell">0.136</td>
+                                <td class="highlight-cell">0.460</td>
+                                <td class="highlight-cell">0.199</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Table 2: MAE Performance</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-secondary);">
+                    Comparison of MAE across different architectures. Replacing the MLP backbone with TimeGNN enhances
+                    the model's ability to capture spatio-temporal dependencies.
+                </p>
+                <div class="results-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>ETTh1</th>
+                                <th>ETTh2</th>
+                                <th>ETTm1</th>
+                                <th>ETTm2</th>
+                                <th>Electricity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CycleNet/MLP</td>
+                                <td>0.441</td>
+                                <td>0.409</td>
+                                <td>0.396</td>
+                                <td>0.314</td>
+                                <td>0.259</td>
+                            </tr>
+                            <tr>
+                                <td>TimeGNN (Original)</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>0.309</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">CycleNet/TimeGNN</td>
+                                <td class="highlight-cell">0.459</td>
+                                <td class="highlight-cell">0.391</td>
+                                <td class="highlight-cell">0.379</td>
+                                <td class="highlight-cell">0.280</td>
+                                <td class="highlight-cell">0.269</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>
+                    As shown above, the probabilistic extension (CycleNet/MLP-Distribution) accurately tracks the time
+                    series while provide a meaningful measure of confidence.
+                </p>
+
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="ETTm1_5.png" alt="ETTm1 Channel 5 Prediction">
+                        <p class="figure-caption">ETTm1 channel 5 prediction with uncertainty bands.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="ETTm2_7.png" alt="ETTm2 Channel 7 Prediction">
+                        <p class="figure-caption">ETTm2 channel 7 prediction showing high confidence in early steps.</p>
+                    </div>
+                </div>
+
+                <p>
+                    Replacing the MLP with TimeGNN also proved advantageous for capturing spatio-temporal relationships,
+                    particularly in the Electricity dataset, where it significantly outperformed the original backbone.
+                </p>
+
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="training_loss_curves_ettm1.png" alt="Training Curves ETTm1">
+                    </div>
+                    <div class="figure-container">
+                        <img src="training_loss_curves_ettm2.png" alt="Training Curves ETTm2">
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Conclusion</h2>
+                <p>
+                    In this work, we enhanced CycleNet by addressing its limitations in multivariate modeling and
+                    interpretability. By integrating Time-GNN and a probabilistic framework, we created a more robust
+                    forecasting model capable of capturing complex feature dependencies and quantifying predictive
+                    uncertainty. These gains were achieved while maintaining the lightweight and efficient nature of the
+                    original CycleNet architecture.
+                </p>
+                <div class="flex gap-md" style="margin-top: 2rem; flex-wrap: wrap;">
+                    <a href="https://github.com/miloshdevic/Implementation-of-CycleNet" target="_blank"
+                        class="btn btn-primary">
+                        <i class="fab fa-github"></i> Source Code
+                    </a>
+                    <a href="CycleNet.pdf" target="_blank" class="btn">
+                        <i class="far fa-file-pdf"></i> Full Report
+                    </a>
+                    <a href="cyclenet_poster.png" target="_blank" class="btn">
+                        <i class="far fa-image"></i> Project Poster
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../../scripts/main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{project_name}} | Milosh Devic</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/layout.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/animations.css">
+    <link rel="stylesheet" href="../styles/sections.css">
+    <style>
+        .project-hero {
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+            text-align: center;
+        }
+
+        .project-hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .project-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .project-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .project-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+
+        .project-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: var(--spacing-lg);
+            border: var(--glass-border);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../index.html" style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px;">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../index.html#projects" class="hover-accent">All Projects</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn"
+                    style="padding: 0.5rem; line-height: 0; border: none; background: transparent; cursor: pointer;"
+                    aria-label="Toggle Theme">
+                    <svg id="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun-icon" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="project-hero fade-in">
+            <a href="../index.html#projects" class="back-link">← Back to Projects</a>
+            <h1 class="gradient-text">{{project_name}}</h1>
+            <div class="project-meta">
+                <span>{{date}}</span>
+                <span>{{field}}</span>
+            </div>
+        </div>
+
+        <div class="project-content">
+            <section class="project-section hidden">
+                <h2>Overview</h2>
+                <p style="color: var(--text-secondary);">{{overview}}</p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>The Challenge</h2>
+                <p style="color: var(--text-secondary);">{{challenge}}</p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Solution & Methodology</h2>
+                <p style="color: var(--text-secondary);">{{solution}}</p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Results</h2>
+                <p style="color: var(--text-secondary);">{{results}}</p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Technologies Used</h2>
+                <div class="skills-grid">
+                    {{tech_stack_tags}}
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../scripts/main.js"></script>
+</body>
+
+</html>

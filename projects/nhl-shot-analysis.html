@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHL Shot Analysis | Milosh Devic</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/layout.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/animations.css">
+    <link rel="stylesheet" href="../styles/sections.css">
+    <style>
+        .project-hero {
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+            text-align: center;
+        }
+
+        .project-hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .project-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .project-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .project-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            border-left: 4px solid var(--text-accent);
+            padding-left: 1rem;
+        }
+
+        .project-section h3 {
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-accent);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+        }
+
+        .highlight-box {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: var(--glass-border);
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../index.html" style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px;">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../index.html#projects" class="hover-accent">All Projects</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="project-hero fade-in">
+            <a href="../index.html#projects" class="back-link">← Back to Projects</a>
+            <h1 class="gradient-text">NHL Shot Analysis</h1>
+            <div class="project-meta">
+                <span>Sep 2023 – Dec 2023</span>
+                <span>Sports Analytics & Real-time ML</span>
+            </div>
+        </div>
+
+        <div class="project-content">
+            <section class="project-section fade-in">
+                <h2>Introduction</h2>
+                <p style="color: var(--text-secondary);">
+                    In this project, we utilized the NHL Stats API to retrieve comprehensive "play-by-play" data. Our
+                    primary objective was to generate insightful plots and interactive visualizations that provide a
+                    deeper understanding of game events, shot types, success rates, and team performance density.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>1. Data Acquisition</h2>
+                <p style="color: var(--text-secondary);">
+                    We developed a robust `NHLDataDownloader` class to interface with the NHL Stats API. This tool
+                    automates the retrieval of regular season and playoff data, handling edge cases like cancelled games
+                    or shortened seasons.
+                </p>
+                <figure class="highlight-box">
+                    <img src="images/milestone1/download_step1.png" alt="Setting up the environment"
+                        style="width: 100%; border-radius: 4px;">
+                    <figcaption
+                        style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
+                        Setting up the Python environment for data retrieval.</figcaption>
+                </figure>
+                <p style="color: var(--text-secondary);">
+                    The downloader allows for partial downloads and can resume where it left off, making it efficient
+                    for large datasets spanning multiple seasons.
+                </p>
+                <img src="images/milestone1/download_step3.png" alt="Download process"
+                    style="width: 100%; border-radius: 4px; margin-top: 1rem;">
+            </section>
+
+            <section class="project-section hidden">
+                <h2>2. Interactive Debugging Tool</h2>
+                <p style="color: var(--text-secondary);">
+                    To verify the integrity of our data, we built an interactive tool using Jupyter Notebooks. It allows
+                    users to flip through events for any game, providing a visual rink overlay and detailed event
+                    descriptions.
+                </p>
+                <figure class="highlight-box">
+                    <img src="images/milestone1/debug.png" alt="Interactive Debugging Tool"
+                        style="width: 100%; border-radius: 4px;">
+                    <figcaption
+                        style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
+                        Visualizing events on the rink with the debugging tool.</figcaption>
+                </figure>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>3. Exploratory Data Analysis</h2>
+                <h3>Shot Types and Their Impact</h3>
+                <p style="color: var(--text-secondary);">
+                    Our analysis of the 2016-17 season revealed that the <strong>Wrist Shot</strong> is the most common
+                    and dangerous contributor to total goals. We used stacked bar graphs to visualize the ratio of goals
+                    to total shots for each type.
+                </p>
+                <img src="images/milestone1/shot_types_2016-17.png" alt="Shot Types 2016-17"
+                    style="width: 100%; border-radius: 4px; margin: 1rem 0;">
+
+                <h3>Shot Distance vs. Goal Probability</h3>
+                <p style="color: var(--text-secondary);">
+                    Consistency across seasons (2018-21) shows that shots taken from 0-40 feet have the highest scoring
+                    probability. This probability decays exponentially as distance increases, with a slight spike at 75+
+                    feet due to empty-net situations.
+                </p>
+                <img src="images/milestone1/shot_goal_ratio_vs_distance_combined.png" alt="Combined Shot Goal Ratio"
+                    style="width: 100%; border-radius: 4px; margin: 1rem 0;">
+
+                <h3>Goal Percentage Heatmaps</h3>
+                <p style="color: var(--text-secondary);">
+                    Heatmaps revealed that <strong>Deflections</strong> near the net (0-10 ft) are exceptionally
+                    dangerous, boasting a success rate of nearly 70%.
+                </p>
+                <img src="images/milestone1/heatmap_goal_percentage_2016-17.png" alt="Goal Percentage Heatmap"
+                    style="width: 100%; border-radius: 4px; margin: 1rem 0;">
+            </section>
+
+            <section class="project-section hidden">
+                <h2>4. Shot Maps & Team Performance</h2>
+                <p style="color: var(--text-secondary);">
+                    By comparing team shot density against the league average, we can visualize offensive effectiveness.
+                </p>
+                <div class="flex gap-md" style="margin: 1rem 0;">
+                    <figure style="flex: 1;">
+                        <img src="images/milestone1/colorado_avalanche_sm_2016-17.png" alt="Colorado 2016-17"
+                            style="width: 100%; border-radius: 4px;">
+                        <figcaption style="font-size: 0.75rem; color: var(--text-secondary);">Colorado 2016-17 (Finished
+                            Last)</figcaption>
+                    </figure>
+                    <figure style="flex: 1;">
+                        <img src="images/milestone1/colorado_avalanche_sm_2020-21.png" alt="Colorado 2020-21"
+                            style="width: 100%; border-radius: 4px;">
+                        <figcaption style="font-size: 0.75rem; color: var(--text-secondary);">Colorado 2020-21 (Finished
+                            1st)</figcaption>
+                    </figure>
+                </div>
+                <p style="color: var(--text-secondary);">
+                    Blue areas represent below-average shooting density, while red areas indicate high-danger offensive
+                    pressure. The transformation of the Avalanche from 2016 to 2021 is clearly visible in their
+                    high-danger zone presence.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>5. Feature Engineering & Expected Goals (xG)</h2>
+                <div class="highlight-box">
+                    <p style="font-style: italic;">"Expected Goals (xG) estimates the quality of a shot by calculating
+                        the likelihood that it results in a goal, based on factors like position, shot type, and prior
+                        events."</p>
+                </div>
+                <p style="color: var(--text-secondary);">
+                    We engineered advanced features including <strong>TimeSinceLastEvent</strong>,
+                    <strong>DistanceLastEvent</strong>, <strong>Rebound Angle Change</strong>, and
+                    <strong>Speed</strong> to better capture the dynamic context of each shot.
+                </p>
+                <img src="images/milestone2/explain_angle_speed.png" alt="Feature Engineering - Speed and Angle"
+                    style="width: 100%; border-radius: 4px; margin: 1rem 0; background: white; padding: 10px;">
+            </section>
+
+            <section class="project-section hidden">
+                <h2>6. Modeling & Evaluation</h2>
+                <p style="color: var(--text-secondary);">
+                    We experimented with Logistic Regression, XGBoost, and Neural Networks, tracking experiments via
+                    <strong>comet.ml</strong>.
+                </p>
+
+                <h3>Feature Selection with SHAP</h3>
+                <p style="color: var(--text-secondary);">
+                    SHAP analysis revealed that `TimeLastEvent`, `DistanceLastEvent`, and `isEmptyNet` were the most
+                    critical predictors of goal probability.
+                </p>
+                <img src="images/milestone2/SHAP.png" alt="SHAP Feature Importance"
+                    style="width: 100%; border-radius: 4px; margin: 1rem 0;">
+
+                <h3>Model Performance (ROC Curves)</h3>
+                <p style="color: var(--text-secondary);">
+                    The Neural Network and XGBoost models achieved near-perfect separability (AUC ≈ 1.0) on the test
+                    sets, significantly outperforming our baseline Logistic Regression models.
+                </p>
+                <img src="images/milestone2/ROC_test_reg_season.png" alt="ROC Curves"
+                    style="width: 100%; border-radius: 4px; margin: 1rem 0;">
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Technologies Used</h2>
+                <div class="skills-grid">
+                    <span class="tag">Python</span>
+                    <span class="tag">TensorFlow</span>
+                    <span class="tag">XGBoost</span>
+                    <span class="tag">SHAP</span>
+                    <span class="tag">Streamlit</span>
+                    <span class="tag">Comet ML</span>
+                    <span class="tag">Docker</span>
+                    <span class="tag">Matplotlib/Seaborn</span>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../scripts/main.js"></script>
+</body>
+
+</html>

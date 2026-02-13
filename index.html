@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milosh Devic | Machine Learning Developer</title>
+    <meta name="description"
+        content="Portfolio of Milosh Devic, a Machine Learning Developer specializing in Generative Models, Computer Vision, and AI.">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/sections.css">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body data-theme="dark">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <div style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px;">MD.</div>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="#about" class="hover-accent">About</a></li>
+                    <li><a href="#experience" class="hover-accent">Experience</a></li>
+                    <li><a href="#publications" class="hover-accent">Publications</a></li>
+                    <li><a href="#projects" class="hover-accent">Projects</a></li>
+                    <li><a href="#contact" class="hover-accent">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- HERO SECTION -->
+        <section class="hero container">
+            <div class="hero-bg"></div>
+            <div class="hero-grid">
+                <div class="hero-content fade-in delay-1">
+                    <h1 class="gradient-text">Milosh Devic</h1>
+                    <h2 class="fade-in delay-2">Machine Learning Developer</h2>
+                    <p class="hero-description fade-in delay-3">
+                        Specialized in Generative Models and Synthetic Data.
+                        M.Sc. Graduate in Computer Science (ML) from MILA / Université de Montréal.
+                    </p>
+                    <!-- <div class="flex gap-md fade-in delay-3">
+                        <a href="#projects" class="btn btn-primary">View Projects</a>
+                        <a href="#contact" class="btn"
+                            style="color: var(--text-secondary); border: 1px solid var(--glass-border);">Contact Me</a>
+                    </div> -->
+                </div>
+                <div class="hero-highlights fade-in delay-4">
+                    <div class="quick-stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                            <div class="stat-content">
+                                <span class="stat-label">Academic Background</span>
+                                <span class="stat-value">M.Sc. in Computer Science (Machine Learning)</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon"><i class="fas fa-brain"></i></div>
+                            <div class="stat-content">
+                                <span class="stat-label">Current Focus</span>
+                                <span class="stat-value">Generative Models, Synthetic Data, ML Engineering</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon"><i class="fas fa-code-branch"></i></div>
+                            <div class="stat-content">
+                                <span class="stat-label">Technical Stack</span>
+                                <span class="stat-value">PyTorch, Python, Deep Learning Models, GCP, Azure OpenAI</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about" class="section container hidden">
+            <h2 class="section-title"><span>01.</span> About Me</h2>
+            <div class="grid grid-2 items-center">
+                <div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        I am a Machine Learning Developer passionate about solving complex problems using
+                        state-of-the-art AI.
+                        With a Master's from <strong>MILA / Université de Montréal</strong>, I focus on
+                        Representation Learning and Generative Modeling.
+                    </p>
+                    <p style="color: var(--text-secondary);">
+                        Currently a Machine Learning Developer at <strong>CRIM</strong>, I specialize in building
+                        generative frameworks for high-utility synthetic data generation and privacy preservation. My
+                        background also includes developing knowledge-graph-driven recommendation systems and real-time
+                        deep learning pipelines for sports analytics.
+                    </p>
+
+                    <div class="education-container">
+                        <h4 class="education-title">
+                            <i class="fas fa-graduation-cap"></i> Education
+                        </h4>
+
+                        <!-- Masters -->
+                        <div class="edu-item">
+                            <div class="edu-logos">
+                                <img src="logos/mila_logo.png" alt="MILA Logo">
+                                <img src="logos/udem_logo.png" alt="UdeM Logo">
+                            </div>
+                            <div class="edu-info">
+                                <div class="edu-degree">Masters in Computer Science (ML specialization)</div>
+                                <div class="edu-school">
+                                    <span><strong>MILA Institute</strong> / Université de Montréal</span>
+                                    <span><strong>2026</strong></span>
+                                </div>
+                                <div class="edu-coursework">
+                                    <strong>Relevant coursework:</strong> Representation Learning, Probabilistic
+                                    Graphical Models, Data Science, Fundamentals of Machine Learning
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bachelors -->
+                        <div class="edu-item">
+                            <div class="edu-logos">
+                                <img src="logos/diro_logo.jpg" alt="DIRO Logo">
+                                <img src="logos/udem_logo.png" alt="UdeM Logo">
+                            </div>
+                            <div class="edu-info">
+                                <div class="edu-degree">Bachelor of Computer Science</div>
+                                <div class="edu-school">
+                                    <span>Université de Montréal</span>
+                                    <span><strong>2023</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Exchange -->
+                        <div class="edu-item">
+                            <div class="edu-logos">
+                                <img src="logos/politecnico-milano-logo.jpg" alt="Polimi Logo">
+                            </div>
+                            <div class="edu-info">
+                                <div class="edu-degree">Semester abroad (ERASMUS+)</div>
+                                <div class="edu-school">
+                                    <span>Politecnico di Milano</span>
+                                    <span><strong>February 2022 - July 2022</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXPERIENCE SECTION -->
+        <section id="experience" class="section container hidden">
+            <h2 class="section-title"><span>02.</span> Experience</h2>
+
+            <div class="timeline">
+                <!-- Item 1 -->
+                <div class="timeline-item">
+                    <div class="timeline-logos">
+                        <img src="logos/crim_logo.png" alt="CRIM Logo">
+                    </div>
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Jan 2025 – Present</span>
+                        <h3 class="timeline-title">Machine Learning Developer</h3>
+                        <h4 class="timeline-company">Centre de Recherche Informatique de Montréal (CRIM)</h4>
+                        <ul class="timeline-list">
+                            <li style="margin-bottom: 1rem;">
+                                <strong>Synthetic Tabular Data Generation for Imbalanced Datasets</strong>
+                                <ul
+                                    style="list-style: circle; margin-top: 0.5rem; margin-bottom: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                                    <li>Designed of a Transformer-based VAE for conditional synthetic tabular data
+                                        generation for scarce and imbalanced real data, <u><strong>improving utility by
+                                                22%</strong></u> and <u><strong>privacy preservation by
+                                                50%</strong></u>.
+                                    </li>
+                                    <li>Scaled from 1 to 4 models training per hour using Hydra's distributed jobs on
+                                        slurm
+                                        framework infrastructure.</li>
+                                    <li>Designed a modeling framework enabling extendable plug-and-play experimentation
+                                        with
+                                        diverse architectures (Transformers, VAEs, Diffusion, GNNs).</li>
+                                    <li>Built training/evaluation framework scaling from <strong><u>1 to
+                                                60+</u></strong>
+                                        combinations dataset/model.</li>
+                                </ul>
+                            </li>
+                            <li style="margin-bottom: 1rem;">
+                                <strong>Representative Multilingual Synthetic CV Generation</strong>
+                                <ul
+                                    style="list-style: circle; margin-top: 0.5rem; margin-bottom: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                                    <li>Used conditional probability sampling to generate 30K Quebec labor force
+                                        profiles as
+                                        context for LLM-based CV generation.</li>
+                                    <li>Cost efficient prompt optimization using DSPy and human evaluation results for
+                                        an
+                                        LLM-as-Judge evaluation system.</li>
+                                </ul>
+                            </li>
+                            <li style="margin-bottom: 1rem;">
+                                <strong>Recommendation System</strong>
+                                <ul
+                                    style="list-style: circle; margin-top: 0.5rem; margin-bottom: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                                    <li>Built a knowledge graph combining occupation–skill and training–skill
+                                        relationships,
+                                        enabling shortest-path inference and skill-gap analysis for career
+                                        recommendation.
+                                    </li>
+                                </ul>
+                            </li>
+                            <li style="margin-bottom: 1rem;">
+                                <strong>Numeria: First line for client requirements analysis</strong>
+                                <ul
+                                    style="list-style: circle; margin-top: 0.5rem; margin-bottom: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                                    <li>Participated in the extraction of business and scientific client requirements
+                                        used
+                                        to guide and propose tailored solutions within their budget.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p style="margin-top: 1.5rem; font-size: 0.9rem;">
+                            <span style="color: var(--text-primary);"><u><strong><em>Tools used: Python, PyTorch, SDV,
+                                            MLflow, Hydra, Azure OpenAI, GCP, AWS, DSPy, SLURM</em></strong></u></span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="timeline-item">
+                    <div class="timeline-logos">
+                        <img src="logos/canmetenergy_logo.png" alt="CanmetENERGY Logo">
+                        <img src="logos/retscreen_logo.png" alt="RETScreen Logo">
+                    </div>
+                    <div class="timeline-dot" style="background: var(--text-secondary); box-shadow: none;"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Apr 2023 – Aug 2024</span>
+                        <h3 class="timeline-title">Programmer Analyst (RETScreen Division)</h3>
+                        <h4 class="timeline-company">CanmetENERGY in Varennes — Contract Full-time</h4>
+                        <p
+                            style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-style: italic;">
+                            RETScreen: a government-developed energy management software used to evaluate clean energy
+                            projects and monitor performance.
+                        </p>
+                        <ul class="timeline-list">
+                            <li>Developed user interfaces using XAML for WPF (Windows Presentation Foundation)
+                                applications
+                            </li>
+                            <li>Analyzed and solved issues reported by testing teams to guarantee performance quality of
+                                the
+                                software</li>
+                            <li>Implemented tools to automate processes, streamlining software usage and improving
+                                overall
+                                efficiency</li>
+                        </ul>
+                        <p style="margin-top: 1rem; font-size: 0.9rem;">
+                            <span style="color: var(--text-primary);"><u><strong><em>Tools used: C#, XAML, Visual
+                                            Studio,
+                                            Git, GitHub Desktop, Azure DevOps</em></strong></u></span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Item 3 -->
+                <div class="timeline-item">
+                    <div class="timeline-logos">
+                        <img src="logos/canmetenergy_logo.png" alt="CanmetENERGY Logo">
+                        <img src="logos/retscreen_logo.png" alt="RETScreen Logo">
+                    </div>
+                    <div class="timeline-dot" style="background: var(--text-secondary); box-shadow: none;"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Sep 2022 – Mar 2023</span>
+                        <h3 class="timeline-title">Programmer Analyst Intern (RETScreen division)</h3>
+                        <h4 class="timeline-company">CanmetENERGY in Varennes — Internship</h4>
+                        <p
+                            style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-style: italic;">
+                            Intern (September - December 2022):
+                        </p>
+                        <ul class="timeline-list">
+                            <li>Developed new features for the Feasibility Analysis and Performance Analysis Modules of
+                                RETScreen Expert improving the usage experience of the clients</li>
+                            <li>Analyzed and solved issues reported by testing teams to guarantee performance quality of
+                                the
+                                software</li>
+                            <li>Implemented solutions facilitating the software usage</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Item 4 -->
+                <div class="timeline-item">
+                    <div class="timeline-logos">
+                        <img src="logos/lady_davis_jgh_logo.png" alt="Lady Davis Institute Logo">
+                    </div>
+                    <div class="timeline-dot" style="background: var(--text-secondary); box-shadow: none;"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">May 2021 – Dec 2021</span>
+                        <h3 class="timeline-title">Research Assistant (Dr. Shirin A. Enger's Lab)</h3>
+                        <h4 class="timeline-company">Lady Davis Institute / Jewish General Hospital</h4>
+                        <p
+                            style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-style: italic;">
+                            Objective: To develop a deep learning model for 3D reconstruction of catheters for
+                            Brachytherapy
+                            patients, aiming to improve treatment planning and accuracy.
+                        </p>
+                        <ul class="timeline-list">
+                            <li>Worked with medical data such as CT images and DICOM files.</li>
+                            <li>Trained 2D U-net models using TensorFlow with the Keras library and implemented a data
+                                generator to handle memory problems.</li>
+                            <li>Worked in a multidisciplinary environment (ML applied to physics and medicine).</li>
+                            <li>Helped organize the inaugural season of McMedHacks' workshops and virtual hackathon.
+                            </li>
+                        </ul>
+                        <p style="margin-top: 1.5rem; font-size: 0.9rem;">
+                            <span style="color: var(--text-primary);"><u><strong><em>Tools used: Python, PyCharm, DICOM
+                                            files, 2D & 3D U-Net model, TensorFlow</em></strong></u></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PUBLICATIONS -->
+        <section id="publications" class="section container hidden">
+            <h2 class="section-title"><span>03.</span> Publications</h2>
+            <div class="glass-card">
+                <ul class="timeline-list" style="color: var(--text-primary);">
+                    <li style="margin-bottom: 1.5rem;">
+                        <strong><a href="publications/cttvae.html" class="hover-accent pub-link">
+                                CTTVAE: Latent Space Structuring for Conditional Tabular Data Generation
+                                <span class="read-more">View Summary →</span>
+                            </a></strong>
+                    </li>
+                    <li style="margin-bottom: 1rem;">
+                        <strong>Creation of multilingual Quebec-representative synthetic CVs</strong> (Coming soon)
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- PROJECTS SECTION -->
+        <section id="projects" class="section container hidden">
+            <h2 class="section-title"><span>04.</span> Projects</h2>
+            <div class="grid grid-2">
+                <!-- Project 1 -->
+                <div class="glass-card">
+                    <h3 style="margin-bottom: 0.5rem;">Self-Aligning VLMs</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                        Improved alignment between visual and textual components with synthetic data, increasing CLIP
+                        score by 13% and object localization accuracy by 10%.
+                    </p>
+                    <div class="skills-grid" style="margin-bottom: 1.5rem;">
+                        <span class="tag">VLM</span><span class="tag">CLIP</span><span class="tag">LoRA</span><span
+                            class="tag">Stable Diffusion</span>
+                    </div>
+                    <a href="projects/self_aligning_vlm/index.html" class="btn btn-primary"
+                        style="font-size: 0.8rem; padding: 0.5rem 1rem;">View Details</a>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="glass-card">
+                    <h3 style="margin-bottom: 0.5rem;">NHL Shot Analysis</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                        Real-time sports analytics pipeline fetching live data from NHL APIs. Interactive dashboard for
+                        real-time shot prediction visualization.
+                    </p>
+                    <div class="skills-grid" style="margin-bottom: 1.5rem;">
+                        <span class="tag">TensorFlow</span><span class="tag">Streamlit</span><span
+                            class="tag">Flask</span><span class="tag">Docker</span>
+                    </div>
+                    <a href="projects/nhl-analytics/index.html" class="btn btn-primary"
+                        style="font-size: 0.8rem; padding: 0.5rem 1rem;">View Details</a>
+                </div>
+
+                <!-- Project 3 -->
+                <div class="glass-card">
+                    <h3 style="margin-bottom: 0.5rem;">Enhancing CycleNet</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                        Time series forecasting improvement (4-12% mean MAE) by integrating a Time-GNN backbone to model
+                        spatio-temporal feature dependencies.
+                    </p>
+                    <div class="skills-grid" style="margin-bottom: 1.5rem;">
+                        <span class="tag">GNN</span><span class="tag">Time Series</span><span class="tag">Probabilistic
+                            Graphical Models</span>
+                    </div>
+                    <a href="projects/cyclenet/index.html" class="btn btn-primary"
+                        style="font-size: 0.8rem; padding: 0.5rem 1rem;">View Details</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- AWARDS -->
+        <section class="section container hidden">
+            <h2 class="section-title"><span>05.</span> Awards</h2>
+            <div class="glass-card">
+                <ul class="timeline-list" style="color: var(--text-primary);">
+                    <li style="margin-bottom: 1rem;">
+                        <strong>DIRO Scholarship of Excellence</strong> (Fall 2020)
+                    </li>
+                    <li>
+                        <strong>Winner of the Lady Davis Institute Undergraduate Research Day</strong> (Aug 2021)
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="section container hidden" style="text-align: center; padding-bottom: 100px;">
+            <h2 style="font-size: 3rem; margin-bottom: 3rem;">Get In Touch</h2>
+
+            <div class="contact-actions justify-center">
+                <a href="mailto:milosh.devic@gmail.com" class="btn btn-primary">milosh.devic@gmail.com</a>
+                <a href="https://github.com/miloshdevic" target="_blank" class="btn"
+                    style="border: 1px solid var(--text-secondary);">GitHub</a>
+                <a href="https://linkedin.com/in/milosh-devic-933917202" target="_blank" class="btn"
+                    style="border: 1px solid var(--text-secondary);">LinkedIn</a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer
+        style="text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+    <script src="scripts/main.js"></script>
+</body>
+
+</html>

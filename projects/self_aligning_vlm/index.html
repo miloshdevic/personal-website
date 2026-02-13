@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Aligning VLMs | Milosh Devic</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="stylesheet" href="../../styles/layout.css">
+    <link rel="stylesheet" href="../../styles/components.css">
+    <link rel="stylesheet" href="../../styles/animations.css">
+    <link rel="stylesheet" href="../../styles/sections.css">
+    <style>
+        .project-hero {
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+            text-align: center;
+        }
+
+        .project-hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: var(--spacing-sm);
+            line-height: 1.2;
+        }
+
+        .project-content {
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .project-section {
+            margin-bottom: 3rem;
+        }
+
+        .project-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .project-section h3 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--text-accent);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+        }
+
+        .figure-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .figure-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+        }
+
+        .figure-caption {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .abstract-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 3rem;
+        }
+
+        .abstract-card h2 {
+            text-align: center;
+            border: none;
+            margin-bottom: 1rem;
+        }
+
+        .author-list {
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .equation {
+            font-family: serif;
+            font-style: italic;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .grid-figures {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        /* Table Styles */
+        .results-table-container {
+            margin: 2.5rem 0;
+            overflow-x: auto;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .highlight-cell {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../../index.html"
+                style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px; text-decoration: none; color: var(--text-primary);">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../../index.html#about" class="hover-accent">About</a></li>
+                    <li><a href="../../index.html#experience" class="hover-accent">Experience</a></li>
+                    <li><a href="../../index.html#publications" class="hover-accent">Publications</a></li>
+                    <li><a href="../../index.html#projects" class="hover-accent">Projects</a></li>
+                    <li><a href="../../index.html#contact" class="hover-accent">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 80px;">
+        <div class="project-hero">
+            <a href="../../index.html#projects" class="back-link">← Back to Projects</a>
+            <h1 class="gradient-text">Self-Aligning VLMs with Focus on Image Modality</h1>
+            <div class="author-list">
+                Project done by Milosh Devic, Aayush Bajaj, Carlone Scott and Paul Kelendji
+            </div>
+            <div class="project-meta">
+                <span><i class="fas fa-university"></i> MILA Institute / Université de Montréal</span>
+                <span><i class="far fa-calendar-alt"></i> Winter 2024</span>
+            </div>
+        </div>
+
+        <div class="project-content">
+            <div class="abstract-card">
+                <h2>Abstract</h2>
+                <p>
+                    Vision-language multimodal models (VLMs) have recently gained a lot of attention given their ability
+                    to tackle complex tasks like visual commonsense reasoning, scene understanding, and
+                    spatio-temporal reasoning. This performance of VLMs significantly depends on their ‘alignment’
+                    abilities: the ability of the models to create precise mappings between the visual and the textual
+                    components. Hence, there is growing interest in formulating innovative methods for improving
+                    image-text alignments, specifically focusing on improving the images' representation space.
+                    Existing methods aim at augmenting the existing texts present in the alignment training data, to
+                    make the texts more informative for effective image-text alignment. However, these augmentation
+                    methods generally are not grounded to the images, often leading to either (i) insufficient
+                    information in the text for the given image, or (ii) overgenerating text which contains extra
+                    hallucinated information. To this end, we introduce a novel yet simple method for generating
+                    faithful augmentations for captions in image-text alignment training data by back-generating images
+                    using the augmented texts and conditioning on the original images, leading to the creation of
+                    better grounded image-text alignment data and tackling both ends of the issue.
+                </p>
+            </div>
+
+            <section class="project-section hidden">
+                <h2>1. Introduction & Motivation</h2>
+                <p>
+                    Vision-language multimodal models (VLMs) have advanced significantly, yet their performance remains
+                    heavily dependent on precise image-text alignment. While current research primarily focuses on
+                    enhancing the text modality through descriptive captioning, the potential of improving the image
+                    modality remains underexplored.
+                </p>
+                <p>
+                    This project introduces a novel methodology to enrich the visual modality by generating faithful,
+                    grounded image-text pairs from the LAION dataset. By leveraging generative techniques to create
+                    images inherently aligned with their textual descriptions, we aim to provide a richer and more
+                    accurate visual context, ultimately enhancing VLM comprehension and performance across diverse
+                    multimodal tasks.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>2. Methodology</h2>
+                <p>
+                    The general methodology (Figure 1) involves gathering BLIP captions from an existing image-text
+                    dataset and then generating new image-caption pairs using an appropriate open-source model.
+                    Subsequently, a pre-trained CLIP model is employed to calculate scores for each pair, and those with
+                    low CLIP scores are removed to ensure alignment and capture of the essence of the captions.
+                </p>
+
+                <div class="figure-container">
+                    <img src="empirical_study.png" alt="Procedure for VLM Improvement">
+                    <p class="figure-caption">Figure 1: Procedure for VLM Improvement.</p>
+                </div>
+
+                <p>
+                    The data collection process involves randomly sampling 4 subsets of 5,000 images from the LAION
+                    dataset. For each subset, we utilized Stable Diffusion to generate new images based on associated
+                    captions. We implemented several strategies to mitigate memory issues, such as using half-precision
+                    (float16) and batch processing.
+                </p>
+
+                <div class="figure-container">
+                    <img src="synthetic_dataset.png" alt="Synthetic Dataset Generation Workflow">
+                    <p class="figure-caption">Figure 2: Workflow of the Creation of our Synthetic Dataset.</p>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h3>3.1 CLIP Scores Assessment</h3>
+                <p>
+                    Before proceeding further, we aimed to assess our dataset using CLIP scores to gauge the alignment
+                    of the new image-caption pairs. CLIP scores offer a powerful means of assessing the semantic
+                    alignment between images and their corresponding captions.
+                </p>
+                <div class="figure-container">
+                    <img src="clip_scores_diagram.png" alt="CLIP Scores Calculation Diagram">
+                    <p class="figure-caption">Figure 3: CLIP Scores Calculation Diagram.</p>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>3. Training</h2>
+                <p>
+                    The training component focuses on fine-tuning the CLIP model using Low-Rank Adaptation (LoRA). We
+                    hypothesized that even with ranks as low as 1, substantial improvements in model performance could
+                    be
+                    observed. The preprocessing involved resizing images, tokenizing captions, and splitting the
+                    20,000-pair dataset into training, validation, and test sets.
+                </p>
+
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="preprocessing.png" alt="Pre-processing Step">
+                        <p class="figure-caption">Figure 4: Pre-processing Step.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="training_clip.png" alt="Model Training: CLIP / LoRA set up">
+                        <p class="figure-caption">Figure 5: Model Training: CLIP / LoRA set up.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>4. Experimental Results</h2>
+                <p>
+                    We conducted an in-depth analysis of our model's performance, focusing on both quantitative
+                    benchmarks and quality evaluation of our dataset.
+                </p>
+
+                <h3>Quality Evaluation of the Dataset</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                    Comparison of CLIP scores between generated images and original samples shows that synthetic images
+                    align well with their descriptive captions.
+                </p>
+
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="clip_score_comparison1.png" alt="Clip Scores subset 1">
+                        <p class="figure-caption">Figure 6: Clip Scores distribution (Subset 1).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="clip_score_comparison.png" alt="Clip Scores subset 2">
+                        <p class="figure-caption">Figure 7: Clip Scores distribution (Subset 2).</p>
+                    </div>
+                </div>
+
+                <h3>Performance Benchmarks</h3>
+                <div class="results-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Architecture</th>
+                                <th>Object Accuracy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CLIP (Baseline)</td>
+                                <td>ViT-B/32</td>
+                                <td>81.58%</td>
+                            </tr>
+                            <tr>
+                                <td>CLIP + LoRA</td>
+                                <td>ViT-B/32</td>
+                                <td>80.93%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">CLIP + LoRA + Our Synthetic Data</td>
+                                <td class="highlight-cell">ViT-B/32</td>
+                                <td class="highlight-cell">92.89%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>
+                    Our model achieved an accuracy of 92.89% on object localization, demonstrating the effectiveness of
+                    faithful synthetic data augmentation.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>5. Conclusion</h2>
+                <p>
+                    This research successfully addressed the asymmetry in VLM development by focusing on the image
+                    modality. By generating faithful image-text pairs, we improved alignment accuracy and pioneered a
+                    balanced approach to multimodal learning. Our results underscore the importance of dataset quality
+                    in enhancing model comprehension, setting a precedent for future investigations into visual-language
+                    integration.
+                </p>
+            </section>
+
+            <section class="project-section hidden"
+                style="border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+                <div class="flex justify-between items-center flex-wrap gap-md">
+                    <div class="flex gap-md">
+                        <a href="https://github.com/theAayushbajaj/self_align_clip" target="_blank"
+                            class="btn btn-primary">
+                            <i class="fab fa-github"></i> Source Code
+                        </a>
+                        <a href="Self_Aligning_VLMs.pdf" target="_blank" class="btn">
+                            <i class="far fa-file-pdf"></i> Full Report
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../../scripts/main.js"></script>
+</body>
+
+</html>
