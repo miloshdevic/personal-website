@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTTVAE Publication | Milosh Devic</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="stylesheet" href="../../styles/layout.css">
+    <link rel="stylesheet" href="../../styles/components.css">
+    <link rel="stylesheet" href="../../styles/animations.css">
+    <link rel="stylesheet" href="../../styles/sections.css">
+    <!-- MathJax -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .pub-hero {
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+            text-align: center;
+        }
+
+        .pub-hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: var(--spacing-sm);
+            line-height: 1.2;
+        }
+
+        .pub-authors {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .pub-authors span {
+            color: var(--text-accent);
+            font-weight: 500;
+        }
+
+        .pub-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .abstract-box {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            border: var(--glass-border);
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .abstract-box::before {
+            content: "Abstract";
+            position: absolute;
+            top: 1rem;
+            left: 2rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-accent);
+            opacity: 0.6;
+        }
+
+        .abstract-text {
+            margin-top: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            font-style: italic;
+        }
+
+        .pub-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .pub-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            border-left: 4px solid var(--text-accent);
+            padding-left: 1rem;
+        }
+
+        .pub-section h3 {
+            font-size: 1.4rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .figure-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .figure-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .figure-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .figure-card img {
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .figure-caption {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .math-block {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(128, 128, 128, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+        }
+
+        .data-table th {
+            color: var(--text-primary);
+            font-weight: 700;
+            background: var(--bg-secondary);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--text-accent);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(var(--accent-rgb), 0.05);
+        }
+
+        /* Fallback for hover if accent-rgb specific variable is missing, though we keep it for consistency if defined dynamically */
+        .data-table tr:hover {
+            background: rgba(128, 128, 128, 0.05);
+        }
+
+        .data-table .highlight-row {
+            background: rgba(56, 189, 248, 0.1);
+            /* font-weight: 700; Removed to allow specific bolding of best scores */
+            color: var(--text-primary);
+            border-left: 3px solid var(--text-accent);
+        }
+
+        .arxiv-cta {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(to bottom, transparent, rgba(var(--accent-rgb), 0.05));
+            border-radius: 20px;
+            margin-top: 4rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../../index.html"
+                style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px; text-decoration: none; color: var(--text-primary);">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../../index.html" class="hover-accent">Profile</a></li>
+                    <li><a href="../../index.html#experience" class="hover-accent">Experience</a></li>
+                    <li><a href="../../publications/index.html" class="hover-accent">Publications</a></li>
+                    <li><a href="../../projects/index.html" class="hover-accent">Projects</a></li>
+                    <li><a href="#contact" class="hover-accent">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="pub-hero fade-in">
+            <a href="../../index.html" class="back-link">← Back to Portfolio</a>
+            <h1 class="gradient-text">CTTVAE: Latent Space Structuring for Conditional Tabular Data Generation on
+                Imbalanced Datasets</h1>
+            <div class="pub-authors">
+                <span>Milosh Devic</span>, Jordan Gierschendorf, David Garson
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 2rem;">
+                Computer Research Institute of Montreal (CRIM)
+            </div>
+            <a href="https://arxiv.org/abs/2602.03641" target="_blank" class="btn btn-primary">Read Full Paper on
+                arXiv</a>
+        </div>
+
+        <div class="pub-content">
+            <div class="abstract-box fade-in delay-1">
+                <p class="abstract-text">
+                    Generating synthetic tabular data under severe class imbalance is essential for domains where rare
+                    but high-impact events drive decision-making. However, most generative models either overlook
+                    minority groups or fail to produce samples that are useful for downstream learning. We introduce
+                    CTTVAE, a Conditional Transformer-based Tabular Variational Autoencoder equipped with two
+                    complementary mechanisms: (i) a class-aware triplet margin loss that restructures the latent space
+                    for sharper intra-class compactness and inter-class separation, and (ii) a training-by-sampling
+                    strategy that adaptively increases exposure to underrepresented groups. Together, these components
+                    form CTTVAE+TBS, a framework that consistently yields more representative and utility-aligned
+                    samples without destabilizing training. Across six real-world benchmarks, CTTVAE+TBS achieves the
+                    strongest downstream utility on minority classes, often surpassing models trained on the original
+                    imbalanced data while maintaining competitive fidelity and bridging the gap for privacy for
+                    interpolation-based sampling methods and deep generative methods. Ablation studies further confirm
+                    that both latent structuring and targeted sampling contribute to these gains. By explicitly
+                    prioritizing downstream performance in rare categories, CTTVAE+TBS provides a robust and
+                    interpretable solution for conditional tabular data generation, with direct applicability to
+                    industries such as healthcare, fraud detection, and predictive maintenance where even small gains in
+                    minority cases can be critical.
+                </p>
+                <div class="tag-list">
+                    <span class="tag">VAE</span>
+                    <span class="tag">Transformers</span>
+                    <span class="tag">Synthetic Data Generation</span>
+                    <span class="tag">Tabular Data</span>
+                    <span class="tag">Imbalanced Datasets</span>
+                </div>
+            </div>
+
+            <section class="pub-section hidden">
+                <h2>Introduction & Motivation</h2>
+                <p style="color: var(--text-secondary);">
+                    Class imbalance is a critical issue in tabular data, especially in high-stakes domains like
+                    healthcare and fraud detection where minority cases (e.g., disease, fraud) are the most important.
+                    Standard generative models often fail here:
+                </p>
+                <ul class="timeline-list" style="margin-top: 1rem;">
+                    <li><strong>SMOTE</strong> linearly interpolates in input space, often creating unrealistic samples.
+                    </li>
+                    <li><strong>Standard VAEs/GANs</strong> ignore class structure, producing "safe" majority samples
+                        but poor minority ones.</li>
+                    <li><strong>TTVAE</strong> uses Transformers for better feature modeling but struggles with severe
+                        imbalance.</li>
+                </ul>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    <strong>CTTVAE</strong> solves this by actively restructuring the latent space to separate classes
+                    and using adaptive sampling to ensure the model learns minority patterns effectively.
+                </p>
+            </section>
+
+            <section class="pub-section hidden">
+                <h2>Methodology: CTTVAE</h2>
+                <div class="figure-card" style="margin-bottom: 2rem;">
+                    <img src="images/conditional_sampling.png" alt="CTTVAE Process">
+                    <div class="figure-caption">Conditional generation with CTTVAE. <b>(1)</b> The trained encoder maps
+                        real samples to latent representations $\mathbf{z}$, from which class-specific subsets are
+                        retained. <b>(2)</b> A filtration step isolates the latent region corresponding to the target
+                        class ($\mathcal{S}_c$). <b>(3)</b> Synthetic latent points $\hat{\mathbf{z}}$ are generated by
+                        local triangle interpolation: for each anchor latent point $z_i$, sampling occurs within a local
+                        convex region spanned by its $k = 5$ nearest neighbors, using inverse-rank distance weighting
+                        and per-neighbor random scaling (bottom zoom panel). The decoder then reconstructs synthetic
+                        samples from $(\hat{\mathbf{z}}, \mathbf{h})$.</div>
+                </div>
+
+                <h3>Class-Aware Triplet Margin Loss</h3>
+                <p style="color: var(--text-secondary);">
+                    To force the model to respect class boundaries, we add a Triplet Margin Loss to the standard VAE
+                    objective. This pulls samples of the same class together ($\mathbf{z}_a, \mathbf{z}_p$) and pushes
+                    different classes apart ($\mathbf{z}_a, \mathbf{z}_n$).
+                </p>
+
+                <div class="math-block">
+                    $$ \mathcal{L}_{\text{triplet}} = \sum_{(a,p,n)\in\mathcal{T}_{\text{batch}}} \max\!\left(\lVert
+                    \mathbf{z}_a - \mathbf{z}_p \rVert_2^2 - \lVert \mathbf{z}_a - \mathbf{z}_n \rVert_2^2 + m,\
+                    0\right) $$
+                </div>
+
+                <p style="color: var(--text-secondary);">
+                    Where $m$ is the margin. This ensures that in the latent space, classes form distinct, compact
+                    clusters, allowing for safe interpolation within a class without bleeding into another.
+                </p>
+
+                <h3>Full CTTVAE Loss</h3>
+                <p style="color: var(--text-secondary);">
+                    The final training objective combines the TTVAE loss with the triplet margin loss:
+                </p>
+                <div class="math-block">
+                    $$ \mathcal{L}_{\text{CTTVAE}} = -\mathbb{E}_{q_\phi(\mathbf{z}|\mathbf{x})} [\log
+                    p_\theta(\mathbf{x}|\mathbf{z}, \mathbf{h})] + \beta \cdot \text{MMD}(q(\mathbf{z}), p(\mathbf{z}))
+                    + \alpha \cdot \mathcal{L}_{\text{triplet}} $$
+                </div>
+                <p style="color: var(--text-secondary);">
+                    where $\mathbf{x}$ is the input data, $\mathbf{h}$ is the contextual embedding produced by the
+                    Transformer encoder, and $\mathbf{z}$ is the latent representation. The hyperparameters $\beta$ and
+                    $\alpha$ control the intensity of the MMD term and the triplet loss term, respectively.
+                </p>
+
+                <div class="figure-card" style="margin-top: 2rem; margin-bottom: 2rem;">
+                    <img src="images/latent_space_comparison.png" alt="Latent Space Comparison">
+                    <div class="figure-caption">Latent space organization: TTVAE (left) vs. CTTVAE (right). Note the
+                        significantly improved class separation.</div>
+                </div>
+
+                <h3>Training-by-Sampling (TBS)</h3>
+                <p style="color: var(--text-secondary);">
+                    We employ an adaptive sampling strategy to counter imbalance during training. Instead of random
+                    batches, we sample based on a probability mass function (PMF) that blends the original distribution
+                    with a uniform one:
+                </p>
+
+                <div class="math-block">
+                    $$ \text{PMF}[c] = \lambda \cdot P_{\text{orig}}[c] + (1 - \lambda) \cdot P_{\text{uniform}}[c] $$
+                </div>
+
+                <p style="color: var(--text-secondary);">
+                    A lower $\lambda$ increases exposure to minority classes. As shown below, this hyperparameter
+                    directly impacts minority class utility (F1 Score).
+                </p>
+
+                <div class="figure-card" style="margin-top: 2rem; width: 100%;">
+                    <img src="images/lambda_tbs.png" alt="Impact of Lambda on F1 Score">
+                    <div class="figure-caption">Impact of the sampling hyperparameter $\lambda$ on minority class F1
+                        scores. Tuning $\lambda$ allows balancing between overfitting and under-representation.</div>
+                </div>
+            </section>
+
+            <section class="pub-section hidden">
+                <h2>Experimental Results</h2>
+
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                    We extensively evaluate our methods against existing alternatives across various datasets with
+                    binary target variables. The results demonstrate that CTTVAE significantly improves downstream
+                    utility on minority classes while maintaining competitive fidelity and privacy preservation.
+                </p>
+
+
+
+                <h3>Utility Scores (MLE)</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Average MLE (F1 Score) for <b>minority samples</b> across datasets. CTTVAE+TBS achieves the top
+                    performance.
+                </p>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Across all datasets, our method consistently achieves the top 2 MLE scores, surpassing deep
+                    generative baselines (TVAE, CTGAN, etc.) in minority-class utility while maintaining stable
+                    majority-class performance. While SMOTE remains a strong baseline, it lacks the ability to scale to
+                    high-dimensional data and provides no privacy safeguards. CTTVAE addresses these limitations,
+                    showing why deep generative models are essential in practice.
+                </p>
+                <div class="figure-card" style="margin-bottom: 2rem; padding: 0;">
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>CH</th>
+                                    <th>AD</th>
+                                    <th>DE</th>
+                                    <th>CR</th>
+                                    <th>MA</th>
+                                    <th>VE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Real</td>
+                                    <td>0.607±0.001</td>
+                                    <td>0.728±0.002</td>
+                                    <td>0.468±0.003</td>
+                                    <td>0.893±0.001</td>
+                                    <td>0.790±0.004</td>
+                                    <td>0.112±0.002</td>
+                                </tr>
+                                <tr>
+                                    <td>CTGAN</td>
+                                    <td>0.559±0.042</td>
+                                    <td>0.677±0.001</td>
+                                    <td>0.459±0.020</td>
+                                    <td>0.428±0.161</td>
+                                    <td>0.327±0.010</td>
+                                    <td>0.011±0.010</td>
+                                </tr>
+                                <tr>
+                                    <td>TVAE</td>
+                                    <td>0.502±0.015</td>
+                                    <td>0.609±0.003</td>
+                                    <td>0.397±0.006</td>
+                                    <td>0.838±0.020</td>
+                                    <td>0.189±0.006</td>
+                                    <td>0.001±0.001</td>
+                                </tr>
+                                <tr>
+                                    <td>CopulaGAN</td>
+                                    <td>0.560±0.010</td>
+                                    <td>0.569±0.004</td>
+                                    <td>0.474±0.038</td>
+                                    <td>0.450±0.190</td>
+                                    <td>0.302±0.023</td>
+                                    <td>0.053±0.060</td>
+                                </tr>
+                                <tr>
+                                    <td>CTABGAN</td>
+                                    <td>0.575±0.020</td>
+                                    <td>0.612±0.002</td>
+                                    <td>0.466±0.039</td>
+                                    <td>0.498±0.172</td>
+                                    <td>0.327±0.006</td>
+                                    <td>0.071±0.012</td>
+                                </tr>
+                                <tr>
+                                    <td>TabDiff</td>
+                                    <td>0.574±0.010</td>
+                                    <td>0.679±0.002</td>
+                                    <td>0.478±0.001</td>
+                                    <td>0.869±0.012</td>
+                                    <td>0.628±0.083</td>
+                                    <td>0.071±0.006</td>
+                                </tr>
+                                <tr>
+                                    <td>SMOTE</td>
+                                    <td>0.608±0.014</td>
+                                    <td>0.694±0.001</td>
+                                    <td>0.501±0.001</td>
+                                    <td><b>0.891±0.001</b></td>
+                                    <td>0.678±0.035</td>
+                                    <td>0.113±0.018</td>
+                                </tr>
+                                <tr>
+                                    <td>TTVAE</td>
+                                    <td>0.607±0.004</td>
+                                    <td>0.689±0.001</td>
+                                    <td>0.463±0.004</td>
+                                    <td>0.857±0.012</td>
+                                    <td>0.560±0.017</td>
+                                    <td>0.072±0.002</td>
+                                </tr>
+                                <tr class="highlight-row">
+                                    <td>CTTVAE+TBS</td>
+                                    <td><b>0.628±0.006</b></td>
+                                    <td><b>0.703±0.002</b></td>
+                                    <td><b>0.512±0.009</b></td>
+                                    <td>0.881±0.004</td>
+                                    <td><b>0.684±0.045</b></td>
+                                    <td><b>0.137±0.016</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <h3>Correlation Preservation</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    We evaluate the structural consistency of synthetic data by computing the absolute difference
+                    between
+                    real and synthetic Pearson correlation matrices. CTTVAE, along with TTVAE and TabDiff, consistently
+                    display the lightest heatmaps, indicating minimal deviation from the true correlation structure. In
+                    contrast, GAN-based methods (TVAE, CTGAN, CTABGAN) show heavier distortions. This confirms that
+                    CTTVAE maintains competitive fidelity while significantly outperforming others on minority utility.
+                </p>
+                <div class="figure-card" style="width: 100%;">
+                    <img src="images/corr_matrices_full.png" alt="Correlation Matrices">
+                    <div class="figure-caption">The absolute difference between correlation matrices computed on real
+                        and synthetic datasets. More intense red color indicates higher difference. Among deep
+                        generative methods, TabDiff and our methods capture correlations better.</div>
+                </div>
+
+                <h3>Privacy Scores (NNDR)</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Nearest Neighbour Distance Ratio (NNDR) - Higher is better. Comparison with interpolation baselines.
+                    <br><span style="font-size: 0.9em; opacity: 0.8;">(Maj = Majority Class, Min = Minority
+                        Class)</span>
+                </p>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    CTTVAE+TBS achieves the best NNDR results when comparing with TTVAE and SMOTE for all classes on
+                    this privacy metric. Interpolation baselines like SMOTE and TTVAE exhibit significantly weaker
+                    privacy because their convex combinations place synthetic points almost on top of real records. Our
+                    latent-space restructuring combined with targeted sampling yields substantially stronger safeguards
+                    against memorization.
+                </p>
+                <div class="figure-card" style="margin-bottom: 1rem; padding: 0;">
+                    <h4
+                        style="padding: 1rem; margin: 0; font-size: 0.9rem; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        Moderately Imbalanced Datasets</h4>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>CH (Maj)</th>
+                                    <th>CH (Min)</th>
+                                    <th>AD (Maj)</th>
+                                    <th>AD (Min)</th>
+                                    <th>DE (Maj)</th>
+                                    <th>DE (Min)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>SMOTE</td>
+                                    <td>0.276±0.020</td>
+                                    <td><b>0.307±0.023</b></td>
+                                    <td>0.203±0.017</td>
+                                    <td>0.263±0.020</td>
+                                    <td>0.341±0.023</td>
+                                    <td>0.347±0.024</td>
+                                </tr>
+                                <tr>
+                                    <td>TTVAE</td>
+                                    <td>0.136±0.026</td>
+                                    <td>0.240±0.030</td>
+                                    <td>0.276±0.021</td>
+                                    <td>0.345±0.025</td>
+                                    <td>0.502±0.027</td>
+                                    <td>0.538±0.028</td>
+                                </tr>
+                                <tr class="highlight-row">
+                                    <td>CTTVAE+TBS</td>
+                                    <td><b>0.336±0.023</b></td>
+                                    <td><b>0.344±0.028</b></td>
+                                    <td><b>0.354±0.023</b></td>
+                                    <td><b>0.420±0.028</b></td>
+                                    <td><b>0.629±0.031</b></td>
+                                    <td><b>0.621±0.031</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="figure-card" style="margin-bottom: 2rem; padding: 0;">
+                    <h4
+                        style="padding: 1rem; margin: 0; font-size: 0.9rem; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        Highly Imbalanced Datasets</h4>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>CR (Maj)</th>
+                                    <th>CR (Min)</th>
+                                    <th>MA (Maj)</th>
+                                    <th>MA (Min)</th>
+                                    <th>VE (Maj)</th>
+                                    <th>VE (Min)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>SMOTE</td>
+                                    <td>0.353±0.020</td>
+                                    <td>0.537±0.029</td>
+                                    <td><b>0.448±0.021</b></td>
+                                    <td><b>0.594±0.028</b></td>
+                                    <td>0.070±0.012</td>
+                                    <td>0.183±0.018</td>
+                                </tr>
+                                <tr>
+                                    <td>TTVAE</td>
+                                    <td><b>0.798±0.039</b></td>
+                                    <td><b>0.738±0.035</b></td>
+                                    <td>0.319±0.024</td>
+                                    <td>0.477±0.030</td>
+                                    <td>0.175±0.020</td>
+                                    <td>0.302±0.024</td>
+                                </tr>
+                                <tr class="highlight-row">
+                                    <td>CTTVAE+TBS</td>
+                                    <td><b>0.784±0.038</b></td>
+                                    <td><b>0.730±0.036</b></td>
+                                    <td><b>0.428±0.027</b></td>
+                                    <td><b>0.570±0.034</b></td>
+                                    <td><b>0.674±0.038</b></td>
+                                    <td><b>0.572±0.035</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <h3>Utility vs. Privacy & Fidelity Trade-offs</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    We visualize the joint trade-offs between minority-class utility, privacy, and fidelity. CTTVAE+TBS
+                    (top right in (a)) achieves the best balance, essentially recovering real-data utility (ratio ≈ 1.0)
+                    while preserving competitive privacy. It significantly outperforms TabDiff and standard generative
+                    models, confirming that our dual strategy of latent structuring and adaptive sampling yields the
+                    most robust minority-class performance.
+                </p>
+
+                <div class="figure-grid">
+                    <div class="figure-card">
+                        <img src="images/utility_privacy_scatter.png" alt="Utility vs Privacy">
+                        <div class="figure-caption"><b>(a) Utility vs. Privacy.</b> Higher is better for both.
+                            CTTVAE+TBS (top right) achieves the best balance, recovering real-data utility while
+                            preserving competitive privacy.</div>
+                    </div>
+                    <div class="figure-card">
+                        <img src="images/utility_fidelity_scatter.png" alt="Utility vs Fidelity">
+                        <div class="figure-caption"><b>(b) Utility vs. Fidelity.</b> CTTVAE+TBS achieves near-optimal
+                            utility (ratio ≈ 1.0) for minority classes, significantly outperforming TabDiff and standard
+                            generative models.</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="pub-section hidden">
+                <h2>Conclusion</h2>
+                <p style="color: var(--text-secondary);">
+                    We introduced CTTVAE, a conditional transformer-based VAE that shows the impact of structuring data
+                    can have. It establishes a new paradigm for imbalanced tabular data generation by restructuring the
+                    latent space and guiding training to preserve minority representation. This structuring and adaptive
+                    sampling yields consistent improvements in downstream utility for rare classes while also enhancing
+                    privacy and keeping fidelity competitive. Unlike interpolation baselines that appear strong only
+                    because they produce samples close to real records, CTTVAE+TBS achieves a more meaningful balance,
+                    generating diverse, task-relevant and privacy-preserving data. These properties make it a practical
+                    solution for real-world domains such as fraud detection, predictive maintenance, and healthcare,
+                    where minority utility and privacy protection are paramount.
+                </p>
+            </section>
+
+            </section>
+
+            <section class="arxiv-cta hidden">
+                <h2 style="margin-bottom: 1rem;">Full Paper</h2>
+                <p style="color: var(--text-secondary); text-align: center; max-width: 600px; margin-bottom: 2rem;">
+                    For complete details on the architecture, extensive ablation studies, and privacy analysis (DCR/NNDR
+                    metrics), please refer to the full paper.
+                </p>
+                <div class="flex gap-md justify-center">
+                    <a href="https://arxiv.org/abs/2602.03641" target="_blank" class="btn btn-primary"
+                        style="padding: 1rem 2.5rem;">Read on arXiv</a>
+                </div>
+            </section>
+
+            <!-- CONTACT SECTION -->
+            <section id="contact" class="section fade-in" style="text-align: center; padding-bottom: 100px;">
+                <h2 style="font-size: 3rem; margin-bottom: 3rem;">Get In Touch</h2>
+
+                <div class="contact-actions justify-center">
+                    <a href="mailto:milosh.devic@gmail.com" class="btn btn-primary">milosh.devic@gmail.com</a>
+                    <a href="https://github.com/miloshdevic" target="_blank" class="btn"
+                        style="border: 1px solid var(--text-secondary);">GitHub</a>
+                    <a href="https://linkedin.com/in/milosh-devic-933917202" target="_blank" class="btn"
+                        style="border: 1px solid var(--text-secondary);">LinkedIn</a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../../scripts/main.js"></script>
+</body>
+
+</html>

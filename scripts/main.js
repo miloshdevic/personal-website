@@ -14,18 +14,20 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('theme', theme);
 
             if (themeText) {
-                themeText.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+                if (themeText) {
+                    themeText.textContent = theme === 'light' ? 'Dark Mode' : 'Light Mode';
+                }
             }
             console.log(`Theme set to: ${theme}`);
         };
 
         // Load preference
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const savedTheme = localStorage.getItem('theme') || 'light';
         setTheme(savedTheme);
 
         themeToggle.addEventListener('click', () => {
             const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             setTheme(newTheme);
         });
     };

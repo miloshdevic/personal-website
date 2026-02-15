@@ -1,0 +1,1209 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{PRIMEarxiv}
+
+\usepackage{times}  % DO NOT CHANGE THIS
+\usepackage{helvet}  % DO NOT CHANGE THIS
+\usepackage{courier}  % DO NOT CHANGE THIS
+\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm}  % DO NOT CHANGE THIS
+\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{subcaption} % Added to enable subfigure environment
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+%\usepackage{algorithmic}   % for algorithmic environment
+%\usepackage{subfig}         % for \subfloat
+\usepackage{booktabs}
+\usepackage{lipsum}
+% \usepackage{fancyhdr}       % header
+\usepackage{graphicx}       % graphics
+\graphicspath{{media/}}     % organize your images and other figures under media/ folder
+\usepackage{enumerate} 
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multirow}
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+
+%Header
+\pagestyle{fancy}
+\thispagestyle{empty}
+\rhead{ \textit{ }} 
+
+% Update your Headers here
+\fancyhead[C]{\textbf{CTTVAE: Latent Space Structuring for Conditional Tabular Data Generation on Imbalanced Datasets}}
+
+% Header rule (the line)
+\renewcommand{\headrulewidth}{1.2pt}
+
+\title{CTTVAE: Latent Space Structuring for Conditional Tabular Data Generation on Imbalanced Datasets}
+
+\author{
+\large Milosh Devic,
+\large Jordan Gierschendorf,
+\large David Garson \\[0.5em]
+Computer Research Institute of Montreal (CRIM) \\[0.3em]
+\fontsize{9}{10}\selectfont milosh.devic@gmail.com, jordan.gierschendorf@crim.ca, david.garson@crim.ca}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Generating synthetic tabular data under severe class imbalance is essential for domains where rare but high-impact events drive decision-making. However, most generative models either overlook minority groups or fail to produce samples that are useful for downstream learning. We introduce CTTVAE, a Conditional Transformer-based Tabular Variational Autoencoder equipped with two complementary mechanisms: (i) a class-aware triplet margin loss that restructures the latent space for sharper intra-class compactness and inter-class separation, and (ii) a training-by-sampling strategy that adaptively increases exposure to underrepresented groups. Together, these components form CTTVAE+TBS, a framework that consistently yields more representative and utility-aligned samples without destabilizing training. Across six real-world benchmarks, CTTVAE+TBS achieves the strongest downstream utility on minority classes, often surpassing models trained on the original imbalanced data while maintaining competitive fidelity and bridging the gap for privacy for interpolation-based sampling methods and deep generative methods. Ablation studies further confirm that both latent structuring and targeted sampling contribute to these gains. By explicitly prioritizing downstream performance in rare categories, CTTVAE+TBS provides a robust and interpretable solution for conditional tabular data generation, with direct applicability to industries such as healthcare, fraud detection, and predictive maintenance where even small gains in minority cases can be critical.
+\end{abstract}
+
+\section{Introduction}
+Generating high-quality synthetic tabular data has become increasingly important for addressing challenges such as data scarcity, privacy constraints~\citep{borisov2022deep}, and class imbalance. These issues are particularly critical in domains like healthcare~\citep{hernandez2022synthetic}, fraud detection, and industrial monitoring, where rare but high-impact events, such as disease diagnosis, fraudulent transactions, or equipment failures, are severely underrepresented. Models trained on such imbalanced datasets often fail to capture meaningful minority-class patterns, leading to biased predictions and poor generalization~\citep{d2025synthetic}. Given the ubiquity of tabular data, improving synthetic generation for downstream learning is a pressing need~\citep{james2021synthetic}.
+
+Classical oversampling methods such as SMOTE~\citep{chawla2002smote} remain popular due to their simplicity, but they only interpolate between input-space samples and often yield unrealistic data in high dimensions~\citep{batista2004study}. Deep generative models (VAEs, GANs, and diffusion models) provide more expressive alternatives. Transformer-based VAEs~\citep{wang2025ttvae} leverage self-attention to capture rich inter-feature dependencies, but they typically struggle with severe imbalance, producing poor-quality minority samples in low-density regions~\citep{d2025synthetic}. Thus, two challenges remain: (i) generative models tend to overlook rare categories unless explicitly conditioned or regularized, and (ii) minority examples require latent representations that are both expressive and class-discriminative.
+
+We propose the Conditional Transformer-based Tabular Variational Autoencoder (CTTVAE), a framework that combines latent space structuring with adaptive sampling to explicitly address class imbalance. CTTVAE incorporates a class-aware triplet margin loss to promote intra-class compactness and inter-class separation, and integrates a training-by-sampling (TBS) strategy that increases exposure to underrepresented groups, which will be referred as CTTVAE+TBS. Together, these mechanisms enable conditional generation that is both representative and utility-aligned, particularly for minority categories. Unlike interpolation methods, CTTVAE operates in a structured latent space, producing semantically coherent samples without sacrificing training stability.
+
+We evaluate CTTVAE across six public benchmarks, comparing it against one classical interpolation baseline and six generative models. Our study provides a systematic analysis of fidelity, privacy, and downstream utility~\citep{alaa2022faithful}, and includes ablation experiments isolating the contributions of latent structuring and sampling. Results show that CTTVAE significantly improves downstream utility on minority classes while maintaining competitive fidelity and privacy preservation.
+
+The key contributions of this work are:
+\begin{enumerate}
+    \item A conditional transformer-based VAE that explicitly improves minority-class utility through latent space structuring and targeted sampling.
+    \item Unlike prior models that either interpolate blindly in the input space or regularize the latent space without task awareness, CTTVAE explicitly restructures the latent manifold to reflect class semantics while simultaneously balancing exposure to rare groups.
+    \item A dual structuring that yields a controllable and general framework and extends naturally to any categorical conditioning variable, far beyond binary class imbalance.
+    \item Through extensive evaluation across six benchmarks, we demonstrate that CTTVAE consistently improves minority-class utility and privacy.
+\end{enumerate}
+
+\section{Related Work}
+\subsection{Interpolation Methods}
+Traditional oversampling techniques serve as strong baselines for handling class imbalance. The Synthetic Minority Over-sampling Technique (SMOTE)~\citep{chawla2002smote} generates synthetic examples by linearly interpolating between minority class samples.  Despite lacking the sophistication of deep models, this method can perform surprisingly well in combination with robust classifiers.
+Its variant, SMOTENC~\citep{mukherjee2021smote}, extends this to mixed-type data by selectively interpolating numerical features while preserving categorical variables.
+
+% Random oversampling, by contrast, simply replicates existing minority instances and is often used due to its simplicity.
+
+\subsection{Deep Generative Models}
+Generative models for tabular data have emerged as powerful tools for addressing challenges such as data scarcity, privacy preservation, and class imbalance. Most high-performing models come from the 3 main generative model families: Variational Autoencoders (VAEs), Generative Adversarial Networks (GANs), Diffusion models~\citep{kingma2013auto,goodfellow2014generative,ho2020denoising}. Among the early works in this area, CTGAN and TVAE~\citep{xu2019modeling} introduced deep generative modeling frameworks specifically tailored to the tabular setting. CTGAN uses a conditional GAN architecture combined with mode-specific normalization to model mixed-type features and imbalanced class distributions, while TVAE formulates generation as a variational inference problem, enabling probabilistic modeling of heterogeneous feature types.
+
+To improve the synthesis of mixed-type tabular data, CTAB-GAN~\citep{zhao2021ctab} extends conditional GANs by introducing classification loss for better supervision, type-specific encoding for continuous and categorical variables, and lightweight preprocessing to handle long-tailed continuous distributions. Its design increases robustness to class imbalance and skewed data distributions. CopulaGAN, introduced in the SDV opensource library~\citep{patki2016synthetic}, enhances CTGAN by combining it with a Gaussian copula-based normalization procedure.
+
+Other recent methods such as Overlap Region Detection (ORD)~\citep{d2025synthetic} have shown that data imbalance often leads to poor generalization due to decision boundaries being dominated by majority-class instances. ORD addresses by selectively increasing the density of minority class data in critical regions of the data space, thereby improving classifier performance. Their results suggest that explicitly shaping the distribution of training samples can substantially enhance downstream utility, especially for underrepresented classes.
+
+Recently, TabDDPM~\citep{kotelnikov2023tabddpm} introduced diffusion-based generative modeling to the tabular domain, leveraging iterative denoising processes to achieve high-fidelity and privacy-aware samples. While TabDDPM reports state-of-the-art performance on several fidelity benchmarks, it does not support conditional generation by design. TabDiff~\citep{shi2025tabdiff} models tabular data with a continuous-time diffusion process over mixed numerical and categorical features, incorporating learnable per-feature noise schedules.
+% and presents significant computational and integration overhead. 
+% Given our focus on efficient, class-aware generation, we do not include it in our main comparisons. In contrast, we retain foundational models like TTVAE and TVAE despite their lack of conditional mechanisms, as they serve as key architectural baselines and are widely adopted in prior work. Our comparisons thus include both conditional and non-conditional models to contextualize the contribution of CTTVAE relative to the broader generative modeling landscape.
+
+Several other models have also been proposed for tabular data generation, including CTABGAN+~\citep{zhao2024ctab}, TabSyn~\citep{zhang2023mixed}, MedGAN~\citep{choi2017generating}, and STaSy~\citep{kim2022stasy}, among others. All these methods highlight progress in realistic tabular generation, yet few tackle conditional synthesis under severe class imbalance. 
+
+\section{Methods}
+
+Our goal is to design a generative framework that explicitly improves the downstream utility of synthetic tabular data in imbalanced settings, with a particular focus on minority classes. To this end, we build on the TTVAE model and introduce CTTVAE+TBS, which combines latent space structuring with adaptive sampling. 
+% The framework integrates a triplet margin loss to reshape the latent geometry into class-specific clusters and a training-by-sampling strategy to ensure consistent exposure to underrepresented categories. 
+\subsection{Overview of TTVAE}
+
+TTVAE is a generative model for tabular data that extends the VAE framework by leveraging the Transformer's~\citep{vaswani2017attention} capabilities for heterogeneous tabular features~\citep{wang2025ttvae}. A Transformer-based encoder produces contextualized embeddings~\citep{huang2020tabtransformer}, denoted $\mathbf{h}$, which capture both local and global dependencies between features. These embeddings allow the model to represent inter-feature relationships in a compressed format and seamlessly integrate categorical (one-hot encoded) and numerical (modeled through a Variational Gaussian Mixture) variables. Given an input $\mathbf{x}$, the encoder outputs:
+
+\begin{align}
+\mathbf{h} &= f_{\text{enc}}^{\text{Transf}}(\mathbf{x}), \quad
+\mathbf{z} \sim q_\phi(\mathbf{z}|\mathbf{x}),
+\end{align}
+
+where $\mathbf{h}$ captures inter-feature dependencies and $\mathbf{z}$ is sampled from the variational posterior. The decoder reconstructs $\mathbf{x}$ using both:
+
+\begin{align}
+\hat{\mathbf{x}} \sim p_\theta(\mathbf{x}|\mathbf{z}, \mathbf{h}).
+\end{align}
+
+Instead of the standard KL divergence term, TTVAE applies a Maximum Mean Discrepancy (MMD) penalty, known for matching well high-dimensional standard normal distributions~\citep{gretton2012kernel}, between the aggregated posterior $q(\mathbf{z})$ and the Gaussian prior $p(\mathbf{z})$, following the InfoVAE formulation~\citep{zhao2019infovae}. Unlike the KL divergence used in the standard ELBO, which regularizes each posterior sample independently and does not explicitly enforce alignment between the aggregated posterior and the prior, MMD aligns $q(\mathbf{z})$ and $p(\mathbf{z})$ at the distribution level, as also explored in Wasserstein Auto-Encoders (WAE)~\citep{tolstikhin2017wasserstein}. This yields the following objective:
+
+\begin{equation}
+\mathcal{L}_{\text{TTVAE}} = -\mathbb{E}_{q_\phi(\mathbf{z}|\mathbf{x})} [\log p_\theta(\mathbf{x}|\mathbf{z}, \mathbf{h})] + \beta \cdot \text{MMD}(q(\mathbf{z}), p(\mathbf{z})),
+\end{equation}
+
+where $\beta$ controls the intensity of the MMD term. This formulation encourages a well-regularized latent space by matching the aggregated posterior to the prior in distribution. When used with characteristic kernels, MMD compares full distributions through kernel mean embeddings, which implicitly capture higher-order dependencies beyond first and second moments~\citep{gretton2012kernel}. Distribution-level latent regularization of this form has been shown to yield well-structured latent manifolds and improved interpolation behavior in autoencoder-based generative models, particularly in MMD-based WAE variants~\citep{tolstikhin2017wasserstein}. During generation, synthetic latent vectors are created via triangular interpolation over real latent encodings~\citep{fonseca2023tabular}, inspired by latent mixup~\citep{beckham2019adversarial}, to promote semantic coherence and improve sample realism.
+
+
+While TTVAE effectively models complex tabular structures, it lacks mechanisms to explicitly organize the latent space with respect to class information. As a result, it may struggle to generate useful samples for underrepresented classes when interpolation crosses ambiguous or low-density regions. This limitation motivates the need for class-aware latent structuring introduced in CTTVAE.
+
+\subsection{CTTVAE}
+As the first component of our proposed framework CTTVAE+TBS, CTTVAE extends TTVAE to structure the latent space with respect to class information while keeping the same transformer architecture. However, it is not inherently designed to prioritize or structure the latent space with respect to class or category-level semantics. This can limit their ability to generate useful samples for underrepresented groups, especially when generating data in ambiguous regions of the latent space. In comparison to ORD which operates in the data space, our approach takes a different perspective by directly structuring the latent space during training to encode class-aware relationships, enabling more reliable and controllable generation and improving sample quality of underrepresented classes.
+
+To address this, we enhance the latent space geometry by incorporating triplet loss as it has proven to effectively work for VAEs~\citep{ishfaq2018tvae}, specifically we implement the \textbf{triplet margin loss}. This addition encourages latent representations of instances from the same class to be embedded closely, while pushing apart samples from different classes. It directly acts on the mean latent vectors of the encoder. 
+
+Let \( \mathbf{z}_a \) be the latent encoding of an anchor instance, \( \mathbf{z}_p \) a positive sample from the same class, and \( \mathbf{z}_n \) a negative sample from a different class. The triplet margin loss is defined as:
+
+
+\begin{align}
+\mathcal{L}_{\text{triplet}} 
+= \sum_{(a,p,n)\in\mathcal{T}_{\text{batch}}}
+\max\!\left(\lVert \mathbf{z}_a - \mathbf{z}_p \rVert_2^2 
+- \lVert \mathbf{z}_a - \mathbf{z}_n \rVert_2^2 + m,\ 0\right),
+\end{align}
+
+where \( \mathcal{T}_{\text{batch}} \) denotes the set of all valid triplets in the mini-batch and \( m \) is the margin hyperparameter. This objective encourages embeddings of the same class to lie closer together than those of different classes by at least margin \( m \). We adopt \textbf{semi-hard negative mining}, following~\citep{schroff2015facenet}, to guide the model towards informative comparisons, selecting \( \mathbf{z}_n \) such that:
+
+\begin{align}
+\lVert \mathbf{z}_a - \mathbf{z}_p \rVert_2^2 < \lVert \mathbf{z}_a - \mathbf{z}_n \rVert_2^2 < \lVert \mathbf{z}_a - \mathbf{z}_p \rVert_2^2 + m
+\end{align}
+
+The detailed procedure is found in Algorithm~\ref{alg:triplet}. The final training objective combines the TTVAE loss with the triplet margin loss:
+
+\begin{align}
+\mathcal{L}_{\text{CTTVAE}} =\ & -\mathbb{E}_{q_\phi(\mathbf{z}|\mathbf{x})} [\log p_\theta(\mathbf{x}|\mathbf{z}, \mathbf{h})] \nonumber  + \beta \cdot \text{MMD}(q(\mathbf{z}), p(\mathbf{z})) + \alpha \cdot \mathcal{L}_{\text{triplet}}
+\end{align}
+
+where $\mathbf{x}$ is the input data, $\mathbf{h}$ is the contextual embedding produced by the Transformer encoder to capture inter-feature dependencies, and $\mathbf{z}$ is the latent representation sampled from the approximate posterior $q_\phi(\mathbf{z}|\mathbf{x})$. The term $\mathbb{E}_{q_\phi(\mathbf{z}|\mathbf{x})} [\log p_\theta(\mathbf{x}|\mathbf{z}, \mathbf{h})] \nonumber$ represents the reconstruction loss. The term $\text{MMD}(q(\mathbf{z}), p(\mathbf{z}))$ represents the MMD loss. The hyperparameters $\beta$ and $\alpha$ control the degree of intensity of the MMD term and the triplet loss term respectively. A higher $\beta$ promotes a more distentangled latent space and a lower one improves the reconstruction loss. Increasing $\alpha$ tightens intra-class clustering and widens inter-class separation.
+
+This leads to a latent space that is better aligned with the desired class label eliminating the blending of unrelated samples(see Figure~\ref{fig:latent_space_comparison} in Appendix F). Furthermore, our framework allows the user to specify any categorical feature during training instead of class variable. This flexibility is especially valuable in use cases where the downstream task depends on factors other than the class label, such as demographic group, region, or product type.
+
+
+\paragraph{Conditional Generation}
+CTTVAE performs class-conditional generation by interpolating only within class-specific latent subsets (Figure~\ref{fig:inference}). The encoder outputs $(\mu_i,\sigma_i,h_i)$ for each input $x_i$, and we then draw $z_i \sim \mathcal{N}(\mu_i,\mathrm{diag}(\sigma_i^2))$.
+
+For a target class $c$, we retain the subset $\mathcal{S}_c=\{(z_i,h_i): y_i=c\}$. For each randomly chosen base point $z_i\in\mathcal{S}_c$, we retrieve its $k\!+\!1$ nearest neighbors in latent space (Minkowski metric), including $z_i$ itself. Excluding the self-neighbor, the remaining $k$ neighbors are ranked by increasing distance and denoted by $\nu_{i,r}$, with $\nu_{i,1}$ the closest and $\nu_{i,k}$ the farthest. Inverse-rank interpolation weights $w_r$ are defined over this ordering and decrease monotonically with distance, with the farthest neighbor receiving zero weight ($w_k = 0$). The so-called \textit{triangle} interpolation (as implemented in the TTVAE code) generalizes the original 3-point triangular interpolation to the $k$-NN case. A synthetic latent point is obtained by sampling within the local convex region around $z_i$ using inverse-rank weights and per-neighbor random scalars:
+\begin{align}
+w_r \;=\; \frac{k-r}{\tfrac{k(k-1)}{2}}\quad (r=1,\ldots,k), \qquad
+u_r \sim \mathcal{U}(0,1), \qquad
+\hat z \;=\; z_i \;+\; \sum_{r=1}^{k} w_r\,u_r\,(\nu_{i,r}-z_i).
+\label{eq:triangle-sampled}
+\end{align}
+
+The decoder receives both the synthetic latent vectors and the filtered encoder outputs and reconstructs $\hat x \sim p_\theta(x \mid \hat z, h)$. This ensures that generation remains confined to a coherent latent region aligned with the target class. Additionally, $u_r$ provides random scaling to diversify interpolated samples.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{conditional_sampling.png}
+    \caption{Conditional generation with CTTVAE. \textbf{(1)} The trained encoder maps real samples to latent representations $\mathbf{z}$, from which class-specific subsets are retained. \textbf{(2)} A filtration step isolates the latent region corresponding to the target class ($\mathcal{S}_c$). \textbf{(3)} Synthetic latent points $\hat{\mathbf{z}}$ are generated by local triangle interpolation: for each anchor latent point $z_i$, sampling occurs within a local convex region spanned by its $k = 5$ nearest neighbors, using inverse-rank distance weighting and per-neighbor random scaling (bottom zoom panel). The decoder then reconstructs synthetic samples from $(\hat{\mathbf{z}}, \mathbf{h})$.}
+    \label{fig:inference}
+\end{figure}
+
+This approach eliminates the need for a conditioning network, instead relying on the structurally aligned latent space learned during training. Since interpolation occurs within condition-specific regions, generated samples preserve class semantics and avoid blending across categories~\citep{d2025synthetic}. While the conditioning mechanism is generalizable to any discrete feature, in this work we focus on the class label, as improving minority-class utility is our primary objective.
+
+Our framework establishes a new paradigm in which the latent space is intentionally restructured for task relevance while the training process is guided to preserve minority representation. This coupling of geometric structuring and sampling control creates a generative framework explicitly tailored to imbalanced tabular learning, setting it apart from existing methods that either ignore class structure or rely on naive interpolation.
+
+\subsection{Training-by-Sampling (TBS)}
+
+Our second component, TBS, is a batch sampling strategy introduced in CTGAN~\citep{xu2019modeling} to mitigate representation bias in tabular datasets, particularly when categorical features exhibit strong imbalance. Rather than drawing training batches uniformly at random, TBS constructs each batch by repeatedly selecting a specific value in a discrete column and sampling data points matching that value. This process ensures that all discrete values across all columns are regularly seen during training, even if their marginal frequency in the dataset is low.
+
+We adopt a variant of the TBS concept, where sampling is guided solely by a user-specified categorical feature rather than sampling over all discrete columns. We do it on only the class label to address the imbalance to have a smoothed class sampling distribution. Specifically, we form a convex combination between the original class distribution $P_{\text{orig}}$ and the uniform distribution $P_{\text{uniform}}$. The resulting sampling probability mass function (PMF) for each class $c$ is given by:
+
+\begin{equation}
+\text{PMF}[c] = \lambda \cdot P_{\text{orig}}[c] + (1 - \lambda) \cdot P_{\text{uniform}}[c],
+\end{equation}
+where $\lambda \in [0, 1]$ is a tunable hyperparameter. $\lambda = 1$ samples from the original class proportions, while $\lambda = 0$ does uniform sampling. Intermediate values offer a trade-off that improves exposure to rare classes without discarding the underlying data distribution, to mitigate risks of overfitting to the minority class.
+
+\section{Results}
+\paragraph{Datasets}
+We extensively evaluate our methods against existing alternatives across various datasets with binary target variables, different properties, sizes, and number of features to evaluate models in different real-world settings, as seen in Table~\ref{tab:datasets}. The first three datasets have been used in most of the literature regarding tabular data generation, the other three have been chosen to explore more extreme cases. 
+\begin{table}[h]
+\centering
+% \small
+% \setlength{\tabcolsep}{1mm}
+\caption{Summary of the datasets used in our experiments. CH = Churn Modeling, AD = Adult, DE = Default of Credit Card Clients, CR = Credit Card Fraud Detection (50k instances - due to limited resources, we undersampled the majority class while keeping the same number of minority instances), MA = Machine Predictive Maintenance, VE = Vehicle Insurance Claims. "IR" denotes the imbalance ratio between the majority and minority class in the training set.}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Abbr.} & \textbf{Train/Test} & \textbf{\#Num. Features} & \textbf{\#Cat. Features} & \textbf{Target Column} & \textbf{IR} \\
+\midrule
+CH      & 8k / 2k & 6 & 4 & "Exited" & 3.9 \\
+AD      & 24{,}111 / 6{,}028 & 6 & 8 & "income" & 3.0 \\
+DE      & 24k / 6k & 20 & 3 & "default.payment.next.month" & 3.5 \\
+CR      & 40{,}378 / 10{,}095 & 29 & 0 & "Class" & 105.7 \\
+MA      & 8k / 2k & 5 & 1 & "Target" & 28.5 \\
+VE      & 12{,}080 / 3{,}020 & 1 & 29 & "FraudFound\_P" & 15.9 \\
+\bottomrule
+\end{tabular}
+\label{tab:datasets}
+\end{table}
+\paragraph{Experiments}
+Each dataset is processed independently by each method to generate fully synthetic data that reflects the training distribution. The training and test subsets are split to have the same imbalance ratio as the full dataset. We did 25 hyperparameter tuning trials for all generative methods (see appendix G for more details), including the $\alpha$ and $\beta$ hyperparameters from our loss function. The hyperparameters were trained separately for each dataset. We run our methods on A100 GPUs.
+
+\subsection{Utility Scores}
+
+To assess the utility of the synthetic data for downstream tasks, we employ the Machine Learning Efficacy (MLE) score. It evaluates the similarity in classification performance when models are trained on synthetic data and tested on real data, compared to models trained and tested entirely on real data. We compute the average F1 score using CatBoost~\citep{prokhorenkova2018catboost}, averaging results over three independent generations for each method and dataset. A higher MLE indicates better alignment with real-data performance, suggesting greater practical utility of the synthetic data.
+
+Table~\ref{tab:results_mle_catboost_min_class} summarizes the results for minority classes (and Table~\ref{tab:results_mle_catboost_by_class} in the appendix for both majority and minority classes). Across all datasets, our method achieves consistently the top 2 MLE scores on all datasets. In particular, it has the best result for 5 out of 6 datasets and the 2nd best for the remaining one. Across datasets, CTTVAE+TBS consistently outperforms deep generative baselines in terms of minority-class utility, with improvements ranging from modest but stable gains to substantial increases under severe imbalance. In comparison with TTVAE, our extension significantly improves performance on all datasets. These improvements are obtained while keeping majority-class performance stable, which is the intended behavior for such regimes. SMOTE remains a strong baseline for utility and outperforms most models in other papers as well however, it lacks the ability to scale to high-dimensional data, provide no privacy safeguards, and cannot handle flexible conditional generation (Table~\ref{tab:nndr_per_class_interpolation}). CTTVAE addresses all three, showing why deep generative models are essential in practice despite surface-level similarity in some scores. 
+
+\begin{table}[H]
+\centering
+% \small
+\setlength{\tabcolsep}{1.5mm}
+\caption{Average MLE and standard deviation over three generations computed with CatBoost across datasets for \textit{minority samples only}. \textbf{Bold} represents the best results on each dataset and \underline{underlined} represents the second best results on each dataset. The performances on the majority class remains stable for all the considered methods. "Real" represents the scores trained on the original dataset. Higher means better.}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & CH & AD & DE & CR & MA & VE \\
+\midrule
+Real & 0.607$\pm$0.001 & 0.728$\pm$0.002 & 0.468$\pm$0.003 & 0.893$\pm$0.001 & 0.790$\pm$0.004 & 0.112$\pm$0.002 \\
+\midrule
+CTGAN & 0.559$\pm$0.042 & 0.677$\pm$0.001 & 0.459$\pm$0.020 & 0.428$\pm$0.161 & 0.327$\pm$0.010 & 0.011$\pm$0.010 \\
+TVAE & 0.502$\pm$0.015 & 0.609$\pm$0.003 & 0.397$\pm$0.006 & 0.838$\pm$0.020 & 0.189$\pm$0.006 & 0.001$\pm$0.001 \\
+CopulaGAN & 0.560$\pm$0.010 & 0.569$\pm$0.004 & 0.474$\pm$0.038 & 0.450$\pm$0.190 & 0.302$\pm$0.023 & 0.053$\pm$0.060 \\
+CTABGAN & 0.575$\pm$0.020 & 0.612$\pm$0.002 & 0.466$\pm$0.039 & 0.498$\pm$0.172 & 0.327$\pm$0.006 & 0.071$\pm$0.012 \\
+TabDiff & 0.574$\pm$0.010 & 0.679$\pm$0.002 & 0.478$\pm$0.001 & 0.869$\pm$0.012. & 0.628$\pm$0.083 & 0.071$\pm$0.006 \\
+SMOTE & \underline{0.608$\pm$0.014}  & \underline{0.694$\pm$0.001} & \underline{0.501$\pm$0.001} & \textbf{0.891$\pm$0.001} & \underline{0.678$\pm$0.035} & \underline{0.113$\pm$0.018} \\
+TTVAE & \underline{0.607$\pm$0.004} & 0.689$\pm$0.001 & 0.463$\pm$0.004 & 0.857$\pm$0.012 & 0.560$\pm$0.017 & 0.072$\pm$0.002 \\
+CTTVAE+TBS & \textbf{0.628$\pm$0.006} & \textbf{0.703$\pm$0.002} & \textbf{0.512$\pm$0.009} & \underline{0.881$\pm$0.004} & \textbf{0.684$\pm$0.045} & \textbf{0.137$\pm$0.016} \\
+\bottomrule
+\end{tabular}
+\label{tab:results_mle_catboost_min_class}
+\end{table}
+
+\subsection{Fidelity Analysis}
+
+We evaluate the fidelity of the synthetic data using three metrics: Wasserstein Distance (WD), Jensen–Shannon Divergence (JSD), and pairwise correlation error (see appendix~\ref{appendix:metrics} for details).
+
+Table~\ref{tab:wd_jsd_corr_combined} shows that diffusion and interpolation-based sampling methods yield on average the strongest fidelity scores overall. SMOTE achieves the lowest WD, JSD, and correlation error which is expected since interpolated samples remain very close to existing records. Among deep generative models, TabDiff obtains the lowest WD and JSD with TTVAE close behind. However, CTTVAE+TBS is comparable on most fidelity metrics, while offering the minority-class utility gains absent from TTVAE and TabDiff. Correlation error further highlights this balance with CTTVAE+TBS achieving errors slightly lower than TTVAE (2.11\% vs. 2.14\%) and around the same as TabDiff (2.10\% ). It is also substantially lower than GAN-based methods (6–12\%). Interpolation-based generative methods show more stability than the other deep generative models. Tables~\ref{tab:wd_per_class}-\ref{tab:pairwise_corr} show results per dataset.
+
+\begin{table}[H]
+\centering
+% \small
+% \setlength{\tabcolsep}{3pt}
+\caption{Average WD and JSD and standard deviation (per class), and average pairwise correlation error and standard deviation (\%) over all datasets. \textbf{Bold} and \underline{underline} indicate best and second-best results respectively. Lower means better. Maj = majority class, Min = minority class, Avg = average.}
+\begin{tabular}{lcc|cc|c}
+\toprule
+\multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c|}{\textbf{WD} $\downarrow$} & \multicolumn{2}{c|}{\textbf{JSD} $\downarrow$} & \textbf{Corr. (\%)} $\downarrow$ \\
+                                 & Maj. & Min. & Maj. & Min. & Avg. \\
+\midrule
+CTGAN         & 0.103$\pm$0.026 & 0.128$\pm$0.037 & 0.084$\pm$0.039 & 0.092$\pm$0.045 & 11.48$\pm$12.75 \\
+TVAE          & 0.135$\pm$0.067 & 0.272$\pm$0.064 & 0.141$\pm$0.053 & 0.178$\pm$0.088 & 6.46$\pm$2.97 \\
+CopulaGAN     & 0.123$\pm$0.038 & 0.167$\pm$0.056 & 0.092$\pm$0.037 & 0.100$\pm$0.042 & 12.81$\pm$13.50 \\
+CTABGAN       & 0.159$\pm$0.096 & 0.205$\pm$0.084 & 0.076$\pm$0.045 & 0.078$\pm$0.051 & 6.22$\pm$2.18 \\
+TabDiff       & \textbf{0.030$\pm$0.006} & \underline{0.069$\pm$0.042} & \underline{0.027$\pm$0.011} & \underline{0.034$\pm$0.017} & \underline{2.10$\pm$0.73} \\
+SMOTE         & \underline{0.031$\pm$0.014} & \textbf{0.056$\pm$0.015} & \textbf{0.009$\pm$0.007} & \textbf{0.019$\pm$0.015} & \textbf{1.43$\pm$0.31} \\
+TTVAE         & 0.057$\pm$0.048 & 0.111$\pm$0.071 & \underline{0.028$\pm$0.013} & 0.044$\pm$0.017 & 2.14$\pm$1.57 \\
+CTTVAE+TBS    & 0.065$\pm$0.040 & 0.093$\pm$0.033 & 0.035$\pm$0.023 & 0.048$\pm$0.019 & \underline{2.11$\pm$1.60} \\
+\bottomrule
+\end{tabular}
+\label{tab:wd_jsd_corr_combined}
+\end{table}
+
+Figure~\ref{fig:corr_matrices} supports these findings: CTTVAE, TTVAE, TabDiff and SMOTE consistently display the lightest heatmaps, indicating minimal deviation from the true correlation structure. In contrast, TVAE, CTGAN and CTABGAN show heavier distortions, confirming their higher correlation errors. These findings show that CTTVAE provides a strong fidelity–utility trade-off, maintaining competitive fidelity among generative models while significantly outperforming them on minority utility. 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=1\columnwidth]{corr_matrices_full.png}
+\caption{The absolute difference between correlation matrices computed on real and synthetic datasets. More intense red color indicates higher difference. Among deep generative methods, TabDiff and our methods  capture correlations better.}
+\label{fig:corr_matrices}
+\end{figure}
+
+\subsection{Privacy Preservation}
+
+To evaluate potential privacy risks in the generated data, we rely on two Euclidean distance-based measures that focus on the proximity between synthetic and real samples. The Distance to Closest Record (DCR) quantifies the minimum distance from each synthetic record to its nearest real counterpart. Lower DCR values suggest a higher risk of memorization and worse privacy preservation. Complementing this, the Nearest Neighbour Distance Ratio (NNDR) assesses how distinct a synthetic point is by comparing the distance to its 2 closest real neighbors. If the ratio is near one, the synthetic point is similarly distant from multiple real records, reducing the likelihood that it mimics any single example. We report the 5\textsuperscript{th} percentile to follow the precedent established in prior work such as CTABGAN~\citep{zhao2021ctab}.
+
+Table~\ref{tab:nndr_per_class_interpolation} compares CTTVAE+TBS against interpolation baselines, since interpolation directly biases these distance metrics. Tables~\ref{tab:privacy_per_class_dcr}-\ref{tab:privacy_per_class_nndr} show results per-dataset for all methods. CTTVAE+TBS achieves the best results when comparing with TTVAE and SMOTE for all classes on this privacy metric. With this we can deduce that latent-space restructuring combined with targeted sampling yields substantially stronger safeguards against memorization.
+% SMOTE and TTVAE exhibit the weakest privacy, nearly two times worse than our method for minority samples, because convex combinations place synthetic points almost on top of real records.
+
+Full results against all other generative models are reported in Appendix Tables~\ref{tab:privacy_per_class_dcr}-\ref{tab:privacy_per_class_nndr}. While some models report higher raw DCR/NNDR values, this often reflects excessive drift away from real distributions, which correlates with poor utility and fidelity. By contrast, CTTVAE offers a balanced trade-off, maintaining strong privacy while clearly outperforming baselines on minority-class utility.
+
+\begin{table}[H]
+% \small
+\centering
+\setlength{\tabcolsep}{1mm}
+\caption{Per-class Nearest Neighbour Distance Ratio (NNDR) across all datasets. \textbf{Bold} represents the best results on each dataset. Higher values indicate better privacy. Maj = majority class, Min = minority class.}
+
+\subfloat[NNDR – Moderately imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CH}} & \multicolumn{2}{c}{\textbf{AD}} & \multicolumn{2}{c}{\textbf{DE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+SMOTE       & & 0.276$\pm$0.020 & \textbf{0.307$\pm$0.023} & 0.203$\pm$0.017 & 0.263$\pm$0.020 & 0.341$\pm$0.023 & 0.347$\pm$0.024 \\
+TTVAE       & & 0.136$\pm$0.026 & 0.240$\pm$0.030 & 0.276$\pm$0.021 & 0.345$\pm$0.025 & 0.502$\pm$0.027 & 0.538$\pm$0.028 \\
+CTTVAE+TBS  & & \textbf{0.336$\pm$0.023} & \textbf{0.344$\pm$0.028} & \textbf{0.354$\pm$0.023} & \textbf{0.420$\pm$0.028} & \textbf{0.629$\pm$0.031} & \textbf{0.621$\pm$0.031} \\
+\bottomrule
+\end{tabular}
+}
+
+\subfloat[NNDR – Highly imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CR}} & \multicolumn{2}{c}{\textbf{MA}} & \multicolumn{2}{c}{\textbf{VE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+SMOTE      & & 0.353$\pm$0.020 & 0.537$\pm$0.029 & \textbf{0.448$\pm$0.021} & \textbf{0.594$\pm$0.028} & 0.070$\pm$0.012 & 0.183$\pm$0.018 \\
+TTVAE      & & \textbf{0.798$\pm$0.039} & \textbf{0.738$\pm$0.035} & 0.319$\pm$0.024 & 0.477$\pm$0.030 & 0.175$\pm$0.020 & 0.302$\pm$0.024 \\
+CTTVAE+TBS & & \textbf{0.784$\pm$0.038} & \textbf{0.730$\pm$0.036} & \textbf{0.428$\pm$0.027} & \textbf{0.570$\pm$0.034} & \textbf{0.674$\pm$0.038} & \textbf{0.572$\pm$0.035} \\
+\bottomrule
+\end{tabular}
+}
+
+\label{tab:nndr_per_class_interpolation}
+\end{table}
+\subsection{Ablation Study}
+We conduct an ablation study to analyze the impact of the triplet loss and the TBS strategy. Tables~\ref{tab:ablation_results_mle_catboost}--\ref{tab:privacy_ablation_nndr} report results for utility, fidelity and privacy, while Table~\ref{tab:full_ablation_table} summarizes average effects across all datasets relative to TTVAE.
+
+\paragraph{Utility}
+Adding triplet loss (CTTVAE vs. TTVAE) yields consistent gains in minority utility (+0.032 on average) while maintaining stable performance on majority classes (Table~\ref{tab:results_mle_catboost_by_class}), showing that restructuring the latent space by separating classes produces more task-relevant minority samples. Incorporating TBS further amplifies these gains: CTTVAE+TBS achieves the strongest overall improvement in minority utility (+0.048 on average), confirming that balanced exposure during training is particularly beneficial in imbalanced settings (Table~\ref{tab:ablation_results_mle_catboost}). Figure~\ref{fig:lambda_tbs} further confirms that while majority-class performance remains stable across $\lambda$ values, minority-class scores can benefit substantially from balanced sampling.
+
+
+\begin{table}[H]
+\centering
+% \small
+\setlength{\tabcolsep}{1mm}
+\caption{Ablation study of the average MLE and standard deviation computed with CatBoost across datasets for \textbf{minority class only}. The performance on the majority class remains stable for all the considered methods. Higher means better.}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & CH & AD & DE & CR & MA & VE \\
+\midrule
+TTVAE & 0.607$\pm$0.004 & 0.689$\pm$0.001 & 0.463$\pm$0.004 & 0.857$\pm$0.012 & 0.560$\pm$0.017 & 0.072$\pm$0.002 \\
+TTVAE+TBS & 0.606$\pm$0.003 & 0.703$\pm$0.002 & 0.498$\pm$0.003 & 0.867$\pm$0.010 & 0.667$\pm$0.024 & 0.084$\pm$0.009 \\
+CTTVAE & 0.627$\pm$0.005 & 0.669$\pm$0.004 & 0.495$\pm$0.005 & 0.881$\pm$0.003 & 0.637$\pm$0.039 & 0.131$\pm$0.011 \\
+CTTVAE+TBS & 0.628$\pm$0.006 & 0.703$\pm$0.002 & 0.512$\pm$0.009 & 0.881$\pm$0.004 & 0.684$\pm$0.045 & 0.137$\pm$0.016 \\
+\bottomrule
+\end{tabular}
+\label{tab:ablation_results_mle_catboost}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\columnwidth]{lambda_tbs.png}
+    \caption{Impact on the minority class of the sampling hyperparameter $\lambda$ on F1 scores across datasets for CTTVAE+TBS and TTVAE+TBS. $\lambda=1$ represents the models performances without aplying TBS. Performance on minority classes depends greatly on its value. }
+    \label{fig:lambda_tbs}
+\end{figure}
+
+\paragraph{Fidelity}
+Fidelity results, reported via WD in Table~\ref{tab:ablation_wd_per_class} and JSD in Table~\ref{tab:ablation_jsd_per_class}, present a more nuanced picture. While some datasets exhibit modest improvements, others show slight degradations, and no single configuration consistently dominates across all settings. Importantly, neither the triplet loss nor TBS introduces systematic fidelity collapse: average WD and JSD variations remain small (Table~\ref{tab:full_ablation_table}), indicating that gains in utility and privacy are not achieved at the expense of severe distributional mismatch. This trade-off suggests that fidelity is largely preserved, though not uniformly improved. We can see this more clearly in Figure~\ref{fig:abs_corr_matrices}, as well as Tables~\ref{tab:wd_per_class}-~\ref{tab:jsd_per_class} where we also display the standard deviation and observe many overlaps and no clear separation for any of the methods in this ablation study.
+
+\begin{table}[H]
+\centering
+% \small
+\setlength{\tabcolsep}{1mm}
+\caption{Ablation study of the average Wasserstein Distance (WD) per class over three generations across all datasets. Lower is better. Maj = majority class, Min = minority class.}
+\begin{tabular}{llcccccccccccc}
+\toprule
+\multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CH}} & \multicolumn{2}{c}{\textbf{AD}} & \multicolumn{2}{c}{\textbf{DE}} & \multicolumn{2}{c}{\textbf{CR}} & \multicolumn{2}{c}{\textbf{MA}} & \multicolumn{2}{c}{\textbf{VE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10} \cmidrule(lr){11-12} \cmidrule(lr){13-14}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+TTVAE         & & 0.032 & 0.064 & 0.067 & 0.097 & 0.066 & 0.103 & 0.143 & 0.249 & 0.013 & 0.099 & 0.023 & 0.052 \\
+TTVAE+TBS     & & 0.041 & 0.060 & 0.074 & 0.091 & 0.101 & 0.108 & 0.186 & 0.200 & 0.017 & 0.072 & 0.029 & 0.047 \\
+CTTVAE        & & 0.044 & 0.046 & 0.063 & 0.096 & 0.085 & 0.106 & 0.137 & 0.210 & 0.013 & 0.158 & 0.065 & 0.078 \\
+CTTVAE+TBS    & & 0.039 & 0.056 & 0.052 & 0.072 & 0.089 & 0.116 & 0.133 & 0.147 & 0.015 & 0.0915 & 0.065 & 0.074 \\
+\bottomrule
+\end{tabular}
+\label{tab:ablation_wd_per_class}
+\end{table}
+
+\begin{table}[H]
+\centering
+% \small
+\setlength{\tabcolsep}{1mm}
+\caption{Ablation study of the average Jensen-Shannon Divergence (JSD) per class over three generations across all datasets. Lower is better. Maj = majority class, Min = minority class.}
+\begin{tabular}{llcccccccccccc}
+\toprule
+\multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CH}} & \multicolumn{2}{c}{\textbf{AD}} & \multicolumn{2}{c}{\textbf{DE}} & \multicolumn{2}{c}{\textbf{CR}} & \multicolumn{2}{c}{\textbf{MA}} & \multicolumn{2}{c}{\textbf{VE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10} \cmidrule(lr){11-12} \cmidrule(lr){13-14}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+TTVAE         & & 0.012 & 0.019 & 0.039 & 0.051 & 0.040 & 0.035 & N/A & N/A & 0.017 & 0.060 & 0.031 & 0.055 \\
+TTVAE+TBS     & & 0.016 & 0.022 & 0.068 & 0.066 & 0.064 & 0.083 & N/A & N/A & 0.023 & 0.035 & 0.031 & 0.042 \\
+CTTVAE        & & 0.009 & 0.018 & 0.041 & 0.056 & 0.073 & 0.067 & N/A & N/A & 0.025 & 0.022 & 0.053 & 0.070 \\
+CTTVAE+TBS    & & 0.009 & 0.016 & 0.045 & 0.058 & 0.067 & 0.060 & N/A & N/A & 0.018 & 0.050 & 0.038 & 0.060 \\
+\bottomrule
+\end{tabular}
+\label{tab:ablation_jsd_per_class}
+\end{table}
+
+\paragraph{Privacy}
+Table~\ref{tab:privacy_ablation_nndr} shows that both triplet loss and TBS substantially improve privacy, as measured by NNDR. CTTVAE had the biggest impact, exhibiting a marked increase in NNDR (+0.161 and +0.088 on average for majority and minority classes respectively), indicating a reduced risk of generating samples overly close to real records. CTTVAE+TBS also improves these gains across both majority and minority classes (+0.166 and +0.103, respectively for NNDR; Table~\ref{tab:full_ablation_table}).
+
+\begin{table}[H]
+% \small
+\centering
+\setlength{\tabcolsep}{1mm}
+\caption{Ablation study of the average NNDR per-class privacy scores per class over three generations across all datasets. Higher scores means better. Maj = majority class, Min = minority class.}
+\begin{tabular}{llcccccccccccc}
+\toprule
+\multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CH}} & \multicolumn{2}{c}{\textbf{AD}} & \multicolumn{2}{c}{\textbf{DE}} & \multicolumn{2}{c}{\textbf{CR}} & \multicolumn{2}{c}{\textbf{MA}} & \multicolumn{2}{c}{\textbf{VE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10} \cmidrule(lr){11-12} \cmidrule(lr){13-14}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+TTVAE       & & 0.136 & 0.240 & 0.276 & 0.345 & 0.502 & 0.538 & 0.798 & 0.738 & 0.319 & 0.477 & 0.175 & 0.302 \\
+TTVAE+TBS   & & 0.169 & 0.336 & 0.349 & 0.447 & 0.636 & 0.601 & 0.835 & 0.766 & 0.282 & 0.514 & 0.089 & 0.189 \\
+CTTVAE      & & 0.342 & 0.327 & 0.340 & 0.402 & 0.618 & 0.582 & 0.756 & 0.790 & 0.404 & 0.481 & 0.715 & 0.584 \\
+CTTVAE+TBS  & & 0.336 & 0.344 & 0.354 & 0.420 & 0.629 & 0.621 & 0.784 & 0.730 & 0.428 & 0.570 & 0.674 & 0.572 \\
+\bottomrule
+\end{tabular}
+\label{tab:privacy_ablation_nndr}
+\end{table}
+
+\begin{table}[H]
+\centering
+% \small
+\setlength{\tabcolsep}{0.7mm}
+\caption{Ablation study results relative to TTVAE across all datasets. Higher is better for MLE, DCR, NNDR; lower is better for WD, JSD. \textbf{Bold} represents the best result and \underline{underline} represents the second best result. Maj = majority class, Min = minority class, Avg = average.}
+\renewcommand{\arraystretch}{1.15} % Added line for 30% more vertical space
+\begin{tabular}{lcc|cc|cc|cc|cc|c}
+\toprule
+\multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c|}{\textbf{Avg. MLE} $\uparrow$} & \multicolumn{2}{c}{\textbf{Avg. WD} $\downarrow$} & \multicolumn{2}{c|}{\textbf{Avg. JSD} $\downarrow$} & \multicolumn{2}{c}{\textbf{DCR} $\uparrow$} & \multicolumn{2}{c|}{\textbf{NNDR} $\uparrow$} & \multicolumn{1}{c}{\textbf{Corr. (\%)} $\downarrow$}\\
+                                 & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+% TTVAE         & -0.003 & -0.069 & \textbf{0.058} & \textbf{0.106} & \textbf{0.027} & \textbf{0.043} & 0.687 & \underline{1.774} & 0.360 & 0.456 & \textbf{2.10} \\
+TTVAE+TBS     & \textbf{0} & +0.030 & +0.017 & \underline{--0.009} & +0.013 & +0.006 & +0.075 & --0.112 & +0.025 & +0.036 & +0.24 \\
+CTTVAE        & -0.002 & \underline{+0.032} & \textbf{+0.005} & +0.010 & \underline{+0.008} & \textbf{--0.001} & \textbf{+0.888} & \textbf{+0.451} & \underline{+0.161} & \underline{+0.088} & +0.21 \\
+CTTVAE+TBS    & \underline{-0.001} & \textbf{+0.048} & \underline{+0.008} & \textbf{--0.018} & \textbf{+0.007} & \underline{+0.004} & \textbf{+0.888} & \underline{+0.145} & \textbf{+0.166} & \textbf{+0.103} & \textbf{--0.03} \\
+\bottomrule
+\end{tabular}
+\label{tab:full_ablation_table}
+\end{table}
+
+For clarity, we report mean values in these summary ablation tables; standard deviations and full baseline comparisons are provided in the appendix~\ref{appendix:additional_results}.
+
+\section{Limitations and Discussion}
+Our framework yields consistent utility improvements across all datasets, with pronounced gains for minority classes, indicating that structuring the latent space using a triplet loss enables effective localized sampling for conditional generation. Furthermore, balancing exposure through TBS are effective strategies for generating task-relevant data under imbalance. Importantly, these benefits come without degrading majority-class performance, which makes the method particularly suitable for domains where minority events drive downstream decisions. We also observe that combining TBS with a structured latent space consistently yields better performance, as seen with CTTVAE+TBS, compared to using TBS with an unstructured latent space (TTVAE+TBS).
+% such as fraud detection, predictive maintenance, and rare disease diagnosis
+
+Some trade-offs remain. The triplet loss adds computational overhead, which may limit scalability to very large datasets. Fidelity metrics also show that class-aware interpolation doesn't systematically improve on raw TTVAE in distributional alignment, while privacy scores indicate that interpolation-based models inherently place synthetic samples closer to real points. However, these effects are moderate, and the addition of TBS mitigates them by reducing overfitting and improving privacy without destabilizing training. Crucially, in imbalanced learning scenarios, slightly lower fidelity is an acceptable compromise when it yields substantially higher utility and privacy protection. The practical value of synthetic data lies in improving downstream task performance while avoiding direct memorization. We argue this trade-off is not a drawback. This is more valuable for downstream deployment, where the goal is robust minority-class decision making rather than pixel-perfect distribution matching. This behavior is also reflected in Figure~\ref{fig:tradeoffs}, where our methods attain higher minority-class utility without disproportionately sacrificing privacy or fidelity. 
+
+\section{Conclusion}
+We introduced CTTVAE, a conditional transformer-based VAE that shows the impact of structuring data can have. It establishes a new paradigm for imbalanced tabular data generation by restructuring the latent space and guiding training to preserve minority representation. This structuring and adaptive sampling yields consistent improvements in downstream utility for rare classes while also enhancing privacy and keeping fidelity competitive. Unlike interpolation baselines that appear strong only because they produce samples close to real records, CTTVAE+TBS achieves a more meaningful balance, generating diverse, task-relevant and privacy-preserving data. These properties make it a practical solution for real-world domains such as fraud detection, predictive maintenance, and healthcare, where minority utility and privacy protection are paramount.
+
+\section{Future Work}
+While this study confirms the effectiveness of structuring latent spaces and sampling bias, several avenues remain open. TBS improves performance but requires tuning its hyperparameter $\lambda$. A natural extension of this work involves exploring more self-adaptive sampling strategies to optimize class exposure dynamically based on training dynamics or dataset properties, reducing manual intervention while preserving performance gains. Additionally, extending the privacy evaluation with metrics such as Membership Inference Attack Accuracy would be beneficial, as most papers do not use them.
+
+\section*{Acknowledgements}
+The authors would like to thank Martin Sotir, Michel Savard, and Gilles Boulianne for their valuable discussions, insightful feedback, and support throughout this work.
+
+\bibliography{references}
+\bibliographystyle{apalike} 
+
+\newpage
+\appendix
+\section{Experimental Setup}
+
+\subsection{Machine Learning Efficacy Models}
+For the Machine Learning Efficacy (MLE) score, we conducted a more in-depth experimentation with several other traditional classifiers. We selected the following diverse set of 7 machine learning models (results are shown in appendix C):
+
+\textbf{RandomForest}
+was implemented using the \texttt{RandomForestClassifier} from the \texttt{scikit-learn} library. 
+\vspace{0.8em}
+
+\textbf{XGBoost}
+was implemented using the \texttt{XGBClassifier} from the \texttt{xgboost} library.
+\vspace{0.8em}
+
+\textbf{LightGBM}
+was implemented using the \texttt{LGBMClassifier} from the \texttt{lightgbm} library.
+\vspace{0.8em}
+
+\textbf{CatBoost}
+was implemented using the \texttt{CatBoostClassifier} from the \texttt{catboost} library.
+\vspace{0.8em}
+
+\textbf{Logistic Regression}
+was implemented using the \texttt{LogisticRegression} class from the \texttt{scikit-learn} library.
+\vspace{0.8em}
+
+\textbf{Support Vector Machines (SVM)}
+was implemented using the \texttt{SVC} class from the \texttt{scikit-learn} library. 
+\vspace{0.8em}
+
+\textbf{Multi-Layer Perceptrons (MLP)}
+was implemented using the \texttt{MLPClassifier} class from the \texttt{scikit-learn} library.
+
+
+\subsection{Fidelity Metrics}
+\label{appendix:metrics}
+\begin{itemize}
+    \item \textbf{Wasserstein Distance (WD):} quantifies the cost of transforming the real distribution into the synthetic one and is particularly sensitive to shifts in tails and distribution spread. Lower WD indicates more accurate modeling of class-conditional distributions.
+    \item \textbf{Jensen-Shannon Divergence (JSD):} measures the dissimilarity between probability distributions in a symmetric and bounded way. It captures how well the synthetic data approximates the global support and entropy of the real distribution.
+    \item \textbf{Pairwise Correlation Error:} evaluates the structural consistency of synthetic data by computing the absolute difference between real and synthetic Pearson correlation matrices. This metric reflects how well inter-feature relationships are preserved.
+\end{itemize}
+
+\subsection{Privacy Metrics}
+Before computing privacy metrics (DCR and NNDR), we subsample 15\% of real and synthetic data and apply z-score normalization. This ensures meaningful distance computations and consistency across datasets.
+\subsection{Pipeline}
+
+Figure~\ref{fig:pipeline} illustrates the experimental pipeline used in our study. The process begins with multiple tabular datasets, which are first preprocessed to ensure compatibility with all data generation models and downstream classifiers. This includes encoding categorical features, scaling numerical ones, and applying a fixed train/test split that preserves the original class imbalance ratio (IR).
+
+The training set is then passed to a selected data generation methods. Each dataset is processed independently by each method to generate synthetic data that reflects the training distribution.
+
+The synthetic data is then evaluated along 3 parallel axes: utility, fidelity and privacy analysis.
+
+This dissected evaluation allows us to analyze each method’s capacity to generate useful, faithful, and privacy-preserving synthetic data. The results are then aggregated and analyzed to draw conclusions about performance trade-offs and the effect of different techniques.
+
+To ensure fair comparison, we fixed the random seed for all model initializations, training, and data splits. Each experiment was repeated with the same configuration across all methods.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{pipeline.png}
+    \caption{Pipeline}
+    \label{fig:pipeline}
+\end{figure}
+
+
+
+
+\subsection{Implementation of Baseline Data Generation Methods}
+
+To evaluate the performance of our proposed method, we implemented several baseline data generation methods commonly used for synthetic tabular data generation. We describe the implementation details for each method:
+
+\textbf{SMOTE}
+was implemented using the \texttt{SMOTE} class from the \texttt{imblearn} library. A customized function was implemented to generate an entirely synthetic dataset.
+\vspace{0.8em}
+
+\textbf{CTGAN}
+was implemented using the \texttt{CTGANSynthesizer} class from the \texttt{sdv} library. 
+\vspace{0.8em}
+
+\textbf{TVAE}
+was implemented using the \texttt{TVAESynthesizer} class from the \texttt{sdv} library. 
+\vspace{0.8em}
+
+\textbf{CopulaGAN}
+was implemented using the \texttt{CopulaGANSynthesizer} class from the \texttt{sdv} library. 
+\vspace{0.8em}
+
+\textbf{CTABGAN}
+was implemented using the code from its repository and adapted to our pipeline. 
+\vspace{0.8em}
+
+\textbf{TabDiff}
+was implemented using the code from its repository and adapted to our pipeline. 
+\vspace{0.8em}
+
+\textbf{TTVAE}
+was implemented using the code from its repository and adapted to our pipeline. 
+
+\section{Semi-hard Triplet Mining}
+Triplet mining is used to shape the latent space so that samples from the same
+class remain close while samples from different classes are pushed apart.  In
+CTTVAE, we adopt a \emph{semi-hard} triplet mining strategy, which selects
+triplets that are informative enough to improve class separation without being
+too difficult for the model to learn from.  This improves the quality of the
+class-conditional latent structure, especially for minority classes, and
+directly supports more faithful conditional generation.
+
+\noindent\textbf{Procedure.}
+We begin by computing all pairwise distances between the latent means
+$\{\mu_i\}_{i=1}^n$.  For each sample $i$, we treat its latent vector $\mu_i$ as
+the \emph{anchor} and partition the remaining samples into positives (same
+label) and negatives (different label).  If the anchor has no valid positive or
+negative examples, it is skipped.
+
+For every valid anchor, we select as the positive example the point of the same
+class that is \emph{farthest} from the anchor.  This choice encourages the
+encoder to reduce the intra-class spread by explicitly pulling difficult
+same-class samples closer together.  We then look for \emph{semi-hard
+negatives}, defined as negative samples whose distance to the anchor is greater
+than the anchor--positive distance but still within the margin $m$.  These
+negatives are informative: they violate the desired class margin but are not so
+far away as to be irrelevant.  If such candidates exist, one is chosen at
+random; otherwise, we fall back to the closest available negative.
+
+Each anchor thus produces exactly one triplet consisting of the anchor, its
+hardest positive, and either a semi-hard or fallback closest negative.  After
+processing all anchors, the triplet loss is computed as the average over all
+constructed triplets, encouraging the latent space to form compact,
+well-separated class clusters.
+
+\begin{algorithm}[H]
+\small
+\caption{Semi-hard triplet mining procedure for CTTVAE}
+\label{alg:triplet}
+\begin{algorithmic}
+\State Compute pairwise distances: $D \leftarrow \text{cdist}(\mu, \mu)$
+\For{$i = 1$ to $n$}
+    \State $a \leftarrow \mu_i$ \Comment{anchor}
+    \State $\text{label}_a \leftarrow y_i$
+    \State $\text{PosIndices} \leftarrow \{ j \mid y_j = y_i, j \ne i \}$
+    \State $\text{NegIndices} \leftarrow \{ j \mid y_j \ne y_i \}$
+    \If{$\text{PosIndices} = \emptyset$ or $\text{NegIndices} = \emptyset$}
+        \State \textbf{continue}
+    \EndIf
+    \State $d_{ap} \leftarrow \min\{ D[i][j] \mid j \in \text{PosIndices} \}$
+    \State $\text{SemiHardMask} \leftarrow \{ j \in \text{NegIndices} \mid d_{ap} < D[i][j] < d_{ap} + m \}$
+    \State $\text{positive} \leftarrow \arg\max\{ D[i][j] \mid j \in \text{PosIndices} \}$
+    \If{$\text{SemiHardMask} \ne \emptyset$}
+        \State $\text{negative} \leftarrow$ random choice from $\text{SemiHardMask}$
+    \Else
+        \State $\text{negative} \leftarrow \arg\min\{ D[i][j] \mid j \in \text{NegIndices} \}$
+    \EndIf
+    \State Append triplet $(a, \text{positive}, \text{negative})$
+\EndFor
+\State Compute average triplet loss over valid triplets
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+\section{Utility vs Privacy vs Fidelity Tradeoffs}
+To better understand how CTTVAE and the proposed training-by-sampling (TBS) strategy affect the minority class, we visualize the joint trade-offs between minority-class utility, privacy and fidelity for all generators. For each method $m$ and dataset $d$, we compute the ratio between the minority-class CatBoost MLE obtained on synthetic data and the corresponding score obtained on the real data, $\mathrm{MLE}_{m,d} / \mathrm{MLE}_{\text{Real},d}$, and aggregate these ratios across datasets using a geometric mean: 
+
+$U_{\mathrm{rel}}(m) = \exp\!\left(\frac{1}{|D|}\sum_{d \in D}\log\frac{\mathrm{MLE}_{m,d}} {\mathrm{MLE}_{\text{Real},d}} \right)$.  
+
+The $x$–axis in both plots reports this aggregate ratio: values around $1$ indicate that the synthetic data supports a minority classifier that is as strong as the one trained on real data, values $<1$ indicate utility loss, and values $>1$ indicate a net gain in minority-class utility.
+
+
+In Figure~\ref{fig:tradeoffs}~(a), the $y$–axis shows the same ratio definition but applied to the minority-class privacy score (NNDR, higher is better).  In Figure~\ref{fig:tradeoffs}~(b), the $y$–axis reports the ratio of minority-class Wasserstein distance (WD), where lower is better: points closer to $(1,0)$ correspond to synthetic data that matches the real distribution while preserving high minority utility.  The point labelled \emph{Optimal} is an unattainable reference corresponding to perfect privacy (NNDR ratio $=1$) and zero fidelity error (WD ratio $=0$) while matching or exceeding real-data utility (utility ratio $=1$).
+
+
+Across both views, the three CTTVAE-based variants occupy a favorable region of the trade-off.  CTTVAE+TBS lies at the extreme right of the plot (utility ratio $\approx 1$), indicating that it essentially recovers real-data minority performance while preserving competitive privacy and low fidelity error.  CTTVAE (without TBS) already improves over classical baselines such as CTGAN, TVAE, CopulaGAN and CTABGAN, but TBS consistently shifts the CTTVAE point further towards the desired region (higher utility with only a mild change in NNDR and a modest increase in WD).  A similar behaviour is observed when moving from TTVAE to TTVAE+TBS: the TBS variant achieves clearly higher minority utility for comparable privacy and only a slight degradation in WD.  TabDiff, which is a strong diffusion-based baseline, attains solid privacy and fidelity but remains noticeably to the left of CTTVAE+TBS on the utility axis, illustrating that its minority samples are less useful for downstream classification than those generated by our method.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{utility_privacy_scatter.png}
+        \caption{Utility vs.\ Privacy}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{utility_fidelity_scatter.png}
+        \caption{Utility vs.\ Fidelity}
+    \end{subfigure}
+    \caption{
+    Minority-class trade-offs between utility and (a) privacy and (b)
+    fidelity.  The $x$–axis shows the geometric mean ratio of minority
+    CatBoost MLE on synthetic vs.\ real data (higher is better).  The
+    $y$–axis reports the corresponding ratio for minority NNDR
+    (higher is better) or WD (lower is better).  The point labelled
+    \emph{Optimal} is a conceptual reference corresponding to matching
+    real-data utility with perfect privacy or zero fidelity error.
+    CTTVAE, TTVAE+TBS and CTTVAE+TBS all lie in the desirable
+    high-utility region, with CTTVAE+TBS achieving the best minority
+    utility while retaining competitive privacy and fidelity compared to
+    both classical GAN/VAE baselines and the diffusion-based TabDiff.
+    }
+    \label{fig:tradeoffs}
+\end{figure}
+
+
+\section{Dataset Preprocessing Details}
+
+All datasets used in this study are publicly available, and the corresponding preprocessing code is provided in the official repository, with dedicated notebooks for each dataset. Preprocessing involved only minimal cleaning: removing rows with missing values or duplicates, digitizing target columns, and dropping irrelevant features such as IDs.
+
+\newpage
+\section{Additional Results}
+\label{appendix:additional_results}
+
+Table~\ref{tab:results_mle_catboost_by_class} reports the mean and standard deviation of the MLE scores over three generations, separated by majority and minority classes. As expected, majority-class performance remains highly stable across all methods, with very low variance, while minority-class results show larger fluctuations reflecting the higher sensitivity to imbalance. This confirms that our improvements primarily benefit the minority class without degrading performance on the majority.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{1mm}
+\caption{Average MLE and standard deviation computed with CatBoost across datasets for each class group (Maj = Majority, Min = Minority). \textbf{Bold} represents the best results on each dataset and \underline{underlined} represents the second best results for minority samples only on each dataset. Its performance on the majority class remains stable for all the considered methods. "Real" represents the scores of CatBoost trained on the original dataset. Higher means better.}
+\subfloat[Majority Class Only]{
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & CH & AD & DE & CR & MA & VE \\
+\midrule
+Real & 0.923$\pm$0.001 & 0.918$\pm$0.002 & 0.890$\pm$0.003 & 0.999$\pm$0.001 & 0.994$\pm$0.004 & 0.970$\pm$0.002 \\
+\midrule
+CTGAN & 0.887$\pm$0.004 & 0.906$\pm$0.007 & 0.870$\pm$0.003 & 0.993$\pm$0.002 & 0.949$\pm$0.004 & 0.970$\pm$0.001 \\
+TVAE & 0.889$\pm$0.001 & 0.881$\pm$0.005 & 0.885$\pm$0.002 & 0.998$\pm$0.001 & 0.982$\pm$0.001 & 0.970$\pm$0.001 \\
+CopulaGAN & 0.856$\pm$0.001 & 0.894$\pm$0.004 & 0.883$\pm$0.003 & 0.981$\pm$0.002 & 0.940$\pm$0.003 & 0.970$\pm$0.001 \\
+CTABGAN & 0.894$\pm$0.002 & 0.896$\pm$0.004 & 0.868$\pm$0.004 & 0.998$\pm$0.001 & 0.983$\pm$0.002 & 0.962$\pm$0.002 \\
+TabDiff & 0.920$\pm$0.001 & 0.912$\pm$0.001 & 0.891$\pm$0.001 & 0.999$\pm$0.001 & 0.989$\pm$0.002 & 0.970$\pm$0.001 \\
+SMOTE & 0.917$\pm$0.001 & 0.908$\pm$0.001 & 0.882$\pm$0.001 & 0.999$\pm$0.001 & 0.990$\pm$0.001 & 0.969$\pm$0.001 \\
+TTVAE & 0.919$\pm$0.001 & 0.910$\pm$0.003 & 0.890$\pm$0.002 & 0.999$\pm$0.001 & 0.989$\pm$0.002 & 0.968$\pm$0.001 \\
+TTVAE+TBS & 0.924$\pm$0.001 & 0.911$\pm$0.001 & 0.881$\pm$0.001 & 0.999$\pm$0.001 & 0.990$\pm$0.001 & 0.970$\pm$0.001 \\
+CTTVAE & 0.921$\pm$0.001 & 0.910$\pm$0.001 & 0.877$\pm$0.001 & 0.999$\pm$0.001 & 0.989$\pm$0.001 & 0.968$\pm$0.001 \\
+CTTVAE+TBS & 0.920$\pm$0.001 & 0.910$\pm$0.002 & 0.882$\pm$0.002 & 0.999$\pm$0.001 & 0.991$\pm$0.001 & 0.967$\pm$0.001 \\
+\bottomrule
+\end{tabular}
+}
+
+\subfloat[Minority Class Only]{
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & CH & AD & DE & CR & MA & VE \\
+\midrule
+Real & 0.607$\pm$0.001 & 0.728$\pm$0.002 & 0.468$\pm$0.003 & 0.893$\pm$0.001 & 0.790$\pm$0.004 & 0.112$\pm$0.002 \\
+\midrule
+CTGAN & 0.559$\pm$0.042 & 0.677$\pm$0.001 & 0.459$\pm$0.020 & 0.428$\pm$0.161 & 0.327$\pm$0.010 & 0.011$\pm$0.010 \\
+TVAE & 0.502$\pm$0.015 & 0.609$\pm$0.003 & 0.397$\pm$0.006 & 0.838$\pm$0.020 & 0.189$\pm$0.006 & 0.001$\pm$0.001 \\
+CopulaGAN & 0.560$\pm$0.010 & 0.569$\pm$0.004 & 0.474$\pm$0.038 & 0.450$\pm$0.190 & 0.302$\pm$0.023 & 0.053$\pm$0.060 \\
+CTABGAN & 0.575$\pm$0.020 & 0.612$\pm$0.002 & 0.466$\pm$0.039 & 0.498$\pm$0.172 & 0.327$\pm$0.006 & 0.071$\pm$0.012 \\
+TabDiff & 0.574$\pm$0.010 & 0.679$\pm$0.002 & 0.478$\pm$0.001 & 0.869$\pm$0.012. & 0.628$\pm$0.083 & 0.071$\pm$0.006 \\
+SMOTE & 0.608$\pm$0.014  & 0.694$\pm$0.001 & \underline{0.501$\pm$0.001} & \textbf{0.891$\pm$0.001} & \underline{0.678$\pm$0.035} & 0.113$\pm$0.018 \\
+TTVAE & 0.607$\pm$0.004 & 0.689$\pm$0.001 & 0.463$\pm$0.004 & 0.857$\pm$0.012 & 0.560$\pm$0.017 & 0.072$\pm$0.002 \\
+TTVAE+TBS & 0.606$\pm$0.003 & \underline{0.703$\pm$0.002} & 0.498$\pm$0.003 & 0.867$\pm$0.010 & 0.667$\pm$0.024 & 0.084$\pm$0.009 \\
+CTTVAE & \underline{0.627$\pm$0.005} & 0.669$\pm$0.004 & 0.495$\pm$0.005 & \underline{0.881$\pm$0.003} & 0.637$\pm$0.039 & \underline{0.131$\pm$0.011} \\
+CTTVAE+TBS & \textbf{0.628$\pm$0.006} & \textbf{0.703$\pm$0.002} & \textbf{0.512$\pm$0.009} & \underline{0.881$\pm$0.004} & \textbf{0.684$\pm$0.045} & \textbf{0.137$\pm$0.016} \\
+% SMOTENC & 0.605 & 0.703 & 0.505 & NA & 0.672 & 0.170 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:results_mle_catboost_by_class}
+\end{table}
+
+In Table~\ref{tab:results_mle_all}, we compute the average F1 score  across 7 classifiers for each method and dataset. A higher MLE indicates better alignment with real-data performance, suggesting greater practical utility of the synthetic data.
+
+\begin{table*}[h!]
+\small
+\setlength{\tabcolsep}{1.2mm}
+\centering
+\caption{The values of the average MLE and standard deviation for each method and each dataset averaged over all classifiers. Each classifier has been tuned and then trained 10 times (training not seeded) with the best set of hyperparameters on the same generated data. \textbf{Bold} represents the best results on each dataset and \underline{underlined} represents the second best results on each dataset. "Real" represents the scores of the models trained on the original dataset. Higher means better.}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Method & CH & AD & DE & CR & MA & VE \\
+\midrule
+Real & 0.732$\pm$0.001 & 0.811$\pm$0.001 & 0.670$\pm$0.001 & 0.945$\pm$0.001 & 0.826$\pm$0.004 & 0.530$\pm$0.002 \\
+\midrule
+CTGAN & 0.697$\pm$0.001 & 0.785$\pm$0.001 & \underline{0.676$\pm$0.001} & 0.815$\pm$0.004 & 0.633$\pm$0.002 & 0.489$\pm$0.002 \\
+TVAE & 0.698$\pm$0.001 & 0.747$\pm$0.001 & 0.646$\pm$0.001 & 0.858$\pm$0.004 & 0.580$\pm$0.003 & 0.485$\pm$0.000 \\
+CopulaGAN & 0.706$\pm$0.001 & 0.725$\pm$0.001 & 0.646$\pm$0.002 & 0.597$\pm$0.009 & 0.612$\pm$0.002 & 0.487$\pm$0.002 \\
+CTABGAN & 0.711$\pm$0.002 & 0.752$\pm$0.001 & 0.667$\pm$0.001 & 0.836$\pm$0.004 & 0.606$\pm$0.006 & 0.518$\pm$0.002 \\
+TabDiff & 0.706$\pm$0.005 & 0.788$\pm$0.001 & 0.668$\pm$0.003 & 0.913$\pm$0.004 & 0.717$\pm$0.038 & 0.508$\pm$0.012 \\
+SMOTE & \underline{0.735$\pm$0.001} & 0.797$\pm$0.001 & \textbf{0.685$\pm$0.001} & \textbf{0.943$\pm$0.001} & \textbf{0.799$\pm$0.003} & \textbf{0.537$\pm$0.002} \\
+TTVAE & \underline{0.735$\pm$0.001} & 0.797$\pm$0.001 & 0.656$\pm$0.002 & 0.925$\pm$0.001 & 0.710$\pm$0.006 & 0.507$\pm$0.002 \\
+TTVAE+TBS & 0.725$\pm$0.002 & \underline{0.798$\pm$0.001} & \underline{0.680$\pm$0.001} & 0.916$\pm$0.001 & 0.746$\pm$0.003 & 0.510$\pm$0.002 \\
+CTTVAE & \textbf{0.744$\pm$0.001} & 0.792$\pm$0.001 & 0.676$\pm$0.003 & \underline{0.930$\pm$0.003} & 0.772$\pm$0.005 & 0.529$\pm$0.003 \\
+CTTVAE+TBS & \textbf{0.744$\pm$0.001} & \textbf{0.801$\pm$0.001} & \textbf{0.683$\pm$0.001} & 0.927$\pm$0.004 & \underline{0.774$\pm$0.004} & \underline{0.531$\pm$0.002} \\
+\bottomrule
+\end{tabular}
+\label{tab:results_mle_all}
+\end{table*}
+
+The per-class Wasserstein Distance results across datasets are presented in Table~\ref{tab:wd_per_class}, separated into moderately and highly imbalanced datasets. The per-class Jensen-Shannon Divergence scores across datasets are shown in Table~\ref{tab:jsd_per_class}. The CR dataset is omitted from this table due to its lack of categorical features.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{1mm}
+\caption{Wasserstein Distance per class average and standard deviation over three generations across datasets. \textbf{Bold} represents the best results and \underline{underline} represents the second best. Lower is better.}
+
+\subfloat[Moderately imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CH}} & \multicolumn{2}{c}{\textbf{AD}} & \multicolumn{2}{c}{\textbf{DE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+CTGAN         & & 0.109$\pm$0.033 & 0.125$\pm$0.035 & 0.131$\pm$0.062 & 0.110$\pm$0.051 & 0.074$\pm$0.037 & 0.082$\pm$0.035 \\
+TVAE          & & 0.242$\pm$0.091 & 0.268$\pm$0.084 & 0.184$\pm$0.094 & 0.204$\pm$0.093 & 0.107$\pm$0.056 & 0.331$\pm$0.168 \\
+CopulaGAN     & & 0.142$\pm$0.070 & 0.148$\pm$0.086 & 0.136$\pm$0.043 & 0.177$\pm$0.042 & 0.103$\pm$0.052 & 0.162$\pm$0.086 \\
+CTABGAN       & & 0.187$\pm$0.075 & 0.182$\pm$0.067 & 0.312$\pm$0.136 & 0.337$\pm$0.151 & 0.200$\pm$0.099 & 0.243$\pm$0.141 \\
+TabDiff       & & 0.043$\pm$0.014 & 0.053$\pm$0.003 & \textbf{0.032$\pm$0.004} & \textbf{0.037$\pm$0.006} & \textbf{0.026$\pm$0.004} & \textbf{0.044$\pm$0.006} \\
+SMOTE         & & \underline{0.037$\pm$0.010} & \textbf{0.040$\pm$0.011} & \underline{0.051$\pm$0.021} & \underline{0.065$\pm$0.026} & \underline{0.042$\pm$0.021} & \underline{0.063$\pm$0.029} \\
+TTVAE         & & \textbf{0.032$\pm$0.013} & 0.064$\pm$0.024 & 0.067$\pm$0.026 & 0.097$\pm$0.037 & 0.066$\pm$0.029 & 0.103$\pm$0.046 \\
+TTVAE+TBS     & & 0.041$\pm$0.022 & 0.060$\pm$0.031 & 0.074$\pm$0.057 & 0.091$\pm$0.064 & 0.101$\pm$0.078 & 0.108$\pm$0.080 \\
+CTTVAE        & & 0.044$\pm$0.017 & \underline{0.046$\pm$0.021} & 0.063$\pm$0.032 & 0.096$\pm$0.050 & 0.085$\pm$0.042 & 0.106$\pm$0.044 \\
+CTTVAE+TBS    & & 0.039$\pm$0.024 & 0.056$\pm$0.033 & \underline{0.052$\pm$0.029} & 0.072$\pm$0.042 & 0.089$\pm$0.049 & 0.116$\pm$0.060 \\
+\bottomrule
+\end{tabular}
+}
+
+\subfloat[Highly imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CR}} & \multicolumn{2}{c}{\textbf{MA}} & \multicolumn{2}{c}{\textbf{VE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+CTGAN         & & 0.136$\pm$0.070 & 0.186$\pm$0.073 & 0.080$\pm$0.018 & 0.150$\pm$0.048 & 0.090$\pm$0.033 & 0.106$\pm$0.025 \\
+TVAE          & & 0.101$\pm$0.048 & 0.260$\pm$0.087 & 0.125$\pm$0.043 & 0.210$\pm$0.072 & 0.053$\pm$0.024 & 0.362$\pm$0.165 \\
+CopulaGAN     & & 0.181$\pm$0.065 & 0.256$\pm$0.085 & 0.105$\pm$0.030 & 0.176$\pm$0.046 & 0.071$\pm$0.010 & 0.083$\pm$0.016 \\
+CTABGAN       & & 0.128$\pm$0.097 & 0.231$\pm$0.108 & 0.035$\pm$0.010 & 0.133$\pm$0.049 & 0.096$\pm$0.035 & 0.105$\pm$0.039 \\
+TabDiff       & & \underline{0.030$\pm$0.006} & 0.148$\pm$0.045 & 0.017$\pm$0.002 & 0.081$\pm$0.002 & 0.032$\pm$0.009 & 0.051$\pm$0.002 \\
+SMOTE         & & \textbf{0.019$\pm$0.009} & \textbf{0.078$\pm$0.033} & 0.019$\pm$0.004 & \textbf{0.048$\pm$0.015} & \textbf{0.020$\pm$0.009} & \textbf{0.040$\pm$0.015} \\
+TTVAE         & & 0.143$\pm$0.090 & 0.249$\pm$0.081 & \textbf{0.013$\pm$0.005} & 0.099$\pm$0.031 & \underline{0.023$\pm$0.010} & 0.052$\pm$0.012 \\
+TTVAE+TBS     & & 0.186$\pm$0.135 & 0.200$\pm$0.082 & 0.017$\pm$0.011 & \underline{0.072$\pm$0.040} & 0.029$\pm$0.030 & \underline{0.047$\pm$0.024} \\
+CTTVAE        & & 0.137$\pm$0.069 & 0.210$\pm$0.094 & \textbf{0.013$\pm$0.006} & 0.158$\pm$0.027 & 0.065$\pm$0.015 & 0.078$\pm$0.021 \\
+CTTVAE+TBS    & & 0.133$\pm$0.098 & \underline{0.147$\pm$0.099} & \underline{0.015$\pm$0.006} & 0.091$\pm$0.025 & 0.065$\pm$0.027 & 0.074$\pm$0.024 \\
+\bottomrule
+\end{tabular}
+}
+
+\label{tab:wd_per_class}
+\end{table}
+
+
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{1mm}
+\caption{Jensen-Shannon Divergence per class average and standard deviation over three generations across datasets. \textbf{Bold} represents the best results and \underline{underline} represents the second best. Lower scores are better. CR dataset is omitted since it does not contain categorical features.}
+
+\subfloat[Moderately imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CH}} & \multicolumn{2}{c}{\textbf{AD}} & \multicolumn{2}{c}{\textbf{DE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+CTGAN         & & 0.024$\pm$0.014 & 0.025$\pm$0.014 & 0.101$\pm$0.052 & 0.104$\pm$0.042 & 0.116$\pm$0.053 & 0.086$\pm$0.039 \\
+TVAE          & & 0.224$\pm$0.095 & 0.232$\pm$0.098 & 0.089$\pm$0.047 & 0.097$\pm$0.050 & 0.157$\pm$0.067 & 0.172$\pm$0.073 \\
+CopulaGAN     & & 0.028$\pm$0.015 & 0.033$\pm$0.018 & 0.104$\pm$0.053 & 0.107$\pm$0.043 & 0.103$\pm$0.044 & 0.094$\pm$0.039 \\
+CTABGAN       & & 0.052$\pm$0.028 & 0.057$\pm$0.032 & 0.143$\pm$0.069 & 0.140$\pm$0.068 & 0.057$\pm$0.030 & 0.070$\pm$0.034 \\
+TabDiff       & & 0.015$\pm$0.008 & \underline{0.010$\pm$0.004} & \underline{0.029$\pm$0.004} & \underline{0.049$\pm$0.001} & 0.042$\pm$0.006 & 0.046$\pm$0.006 \\
+SMOTE         & & \textbf{0.004$\pm$0.002} & \textbf{0.012$\pm$0.008} & \textbf{0.009$\pm$0.005} & \textbf{0.018$\pm$0.010} & \textbf{0.003$\pm$0.002} & \textbf{0.008$\pm$0.004} \\
+TTVAE         & & 0.012$\pm$0.006 & 0.019$\pm$0.009 & 0.039$\pm$0.023 & 0.051$\pm$0.027 & \underline{0.040$\pm$0.013} & \underline{0.035$\pm$0.011} \\
+TTVAE+TBS     & & 0.016$\pm$0.011 & 0.022$\pm$0.012 & 0.068$\pm$0.048 & 0.066$\pm$0.042 & 0.064$\pm$0.037 & 0.083$\pm$0.046 \\
+CTTVAE        & & \underline{0.009$\pm$0.008} & 0.018$\pm$0.013 & 0.041$\pm$0.022 & 0.056$\pm$0.033 & 0.073$\pm$0.032 & 0.067$\pm$0.029 \\
+CTTVAE+TBS    & & \underline{0.009$\pm$0.004} & 0.016$\pm$0.009 & 0.045$\pm$0.013 & 0.058$\pm$0.021 & 0.067$\pm$0.033 & 0.060$\pm$0.027 \\
+\bottomrule
+\end{tabular}
+}
+
+\subfloat[Highly imbalanced datasets]{
+\begin{tabular}{llcccc}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{MA}} & \multicolumn{2}{c}{\textbf{VE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} 
+& & Maj. & Min. & Maj. & Min. \\
+\midrule
+CTGAN         & & 0.066$\pm$0.032 & 0.092$\pm$0.045 & 0.115$\pm$0.054 & 0.151$\pm$0.071 \\
+TVAE          & & 0.114$\pm$0.048 & 0.091$\pm$0.040 & 0.118$\pm$0.051 & 0.296$\pm$0.115 \\
+CopulaGAN     & & 0.100$\pm$0.043 & 0.123$\pm$0.052 & 0.124$\pm$0.050 & 0.144$\pm$0.069 \\
+CTABGAN       & & 0.030$\pm$0.016 & \textbf{0.008$\pm$0.004} & 0.098$\pm$0.044 & 0.115$\pm$0.057 \\
+TabDiff       & & 0.020$\pm$0.001 & 0.014$\pm$0.010 & \underline{0.027$\pm$0.006} & 0.050$\pm$0.003 \\
+SMOTE         & & \textbf{0.010$\pm$0.006} & \underline{0.011$\pm$0.006} & \textbf{0.020$\pm$0.010} & \underline{0.044$\pm$0.024} \\
+TTVAE         & & \underline{0.017$\pm$0.009} & 0.060$\pm$0.029 & 0.031$\pm$0.013 & 0.055$\pm$0.027 \\
+TTVAE+TBS     & & 0.023$\pm$0.011 & 0.035$\pm$0.020 & 0.031$\pm$0.034 & \textbf{0.042$\pm$0.039} \\
+CTTVAE        & & 0.025$\pm$0.012 & 0.022$\pm$0.021 & 0.053$\pm$0.016 & 0.070$\pm$0.027 \\
+CTTVAE+TBS    & & 0.018$\pm$0.008 & 0.050$\pm$0.007 & 0.038$\pm$0.012 & 0.060$\pm$0.026 \\
+\bottomrule
+\end{tabular}
+}
+
+\label{tab:jsd_per_class}
+\end{table}
+
+
+Table~\ref{tab:pairwise_corr} reports the pairwise correlation error rates across datasets. SMOTE achieves the lowest correlation errors in most cases, particularly on CR and DE. CTTVAE and its TBS variant also perform well, with notably low errors and comparable with the baseline interpolation methods. In contrast, models like CTGAN and CopulaGAN show higher deviation from the real data’s correlation structure.
+
+\begin{table}[H]
+\small
+\setlength{\tabcolsep}{1mm}
+\centering
+\caption{Pair-wise correlation error rate (\%) averaged over three generations with standard deviation for each method across datasets. \textbf{Bold} and \underline{underline} represent best and second best results respectively on each dataset. Lower is better.}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} & CH & AD & DE & CR & MA & VE \\
+\midrule
+CTGAN & 2.89$\pm$0.13 & 2.40$\pm$0.21 & 3.39$\pm$1.86 & 25.71$\pm$7.51 & 29.95$\pm$6.24 & 4.55$\pm$0.31 \\
+TVAE & 8.97$\pm$1.85 & 4.86$\pm$2.07 & 5.21$\pm$1.07 & 11.29$\pm$2.05 & 3.93$\pm$1.32 & 4.48$\pm$0.37 \\
+CopulaGAN & 3.15$\pm$0.83 & 3.32$\pm$0.65 & 5.85$\pm$0.97 & 32.32$\pm$18.26 & 27.90$\pm$5.14 & 4.37$\pm$0.55 \\
+CTABGAN & 3.94$\pm$0.39 & 6.89$\pm$3.17 & 8.54$\pm$1.13 & 6.79$\pm$3.50 & 3.19$\pm$1.57 & 7.99$\pm$1.26 \\
+TabDiff & 1.99$\pm$0.11 & 1.87$\pm$0.07 & \textbf{1.22$\pm$0.08} & \underline{3.12$\pm$0.62} & 2.83$\pm$0.25 & 1.57$\pm$0.17 \\
+SMOTE & \textbf{1.05$\pm$0.10} & 1.18$\pm$0.08 & \underline{1.78$\pm$0.07} & \textbf{1.82$\pm$0.08} & 1.32$\pm$0.011 & \textbf{1.42$\pm$0.20} \\
+TTVAE & 1.12$\pm$0.07 & \textbf{1.05$\pm$0.09} & 2.31$\pm$0.37 & 5.20$\pm$0.49 & 1.39$\pm$0.16 & 1.76$\pm$0.20 \\
+TTVAE+TBS & 1.43$\pm$0.14 & \underline{1.14$\pm$0.15} & 3.22$\pm$0.45 & 5.31$\pm$0.48 & 1.43$\pm$0.22 & \underline{1.52$\pm$0.18} \\
+CTTVAE & \underline{1.08$\pm$0.09} & 1.37$\pm$0.20 & 2.31$\pm$0.28 & 6.31$\pm$0.60 & \underline{1.14$\pm$0.07} & 1.67$\pm$0.17 \\
+CTTVAE+TBS & 1.13$\pm$0.06 & 1.40$\pm$0.15 & 2.29$\pm$0.23 & 5.23$\pm$0.53 & \textbf{0.95$\pm$0.06} & 1.63$\pm$0.15 \\
+\bottomrule
+\end{tabular}
+\label{tab:pairwise_corr}
+\end{table}
+
+ % Table~\ref{tab:dcr_nndr_per_class} summarizes the results. 
+Tables~\ref{tab:privacy_per_class_dcr}~\ref{tab:privacy_per_class_nndr} report per-class privacy scores. Higher values indicate greater dissimilarity between synthetic and real records, suggesting better privacy preservation. However, high privacy can sometimes reflect low data utility and fidelity if the synthetic samples drift too far from the true data distribution. For instance, GAN models achieve consistently among the highest scores but often performs poorly in terms of utility. This does not imply that the synthetic data is of high quality. On the contrary, it signals poor alignment with the original data. Among the generative models, TTVAE and CTTVAE variants tend to strike a more balanced profile, achieving moderate scores without overstepping into unrealistic territory given their high utility scores. In highly imbalanced settings, TTVAE-based model achieve strong comparable privacy scores, suggesting that these methods and training strategies are more suitable for these datasets. It remains crucial to interpret privacy jointly with fidelity and utility as it does not paint the full picture.
+
+\begin{table}[h]
+\small
+\centering
+\setlength{\tabcolsep}{1mm}
+\caption{Average and standard deviation per-class DCR scores over three generations on each dataset. \textbf{Bold} represents the best results and \underline{underline} represents the second best on each dataset. Higher scores means better.}
+
+\subfloat[DCR – Moderately imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CH}} & \multicolumn{2}{c}{\textbf{AD}} & \multicolumn{2}{c}{\textbf{DE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+CTGAN       & & 0.692$\pm$0.097 & 0.993$\pm$0.100 & \underline{1.000$\pm$0.135} & 0.912$\pm$0.112 & 0.712$\pm$0.145 & 0.876$\pm$0.178 \\
+TVAE        & & \textbf{1.501$\pm$0.215} & \textbf{1.664$\pm$0.248} & 0.774$\pm$0.188 & 0.890$\pm$0.225 & \textbf{1.009$\pm$0.265} & \textbf{1.778$\pm$0.310} \\
+CopulaGAN   & & 0.750$\pm$0.165 & 0.802$\pm$0.175 & 0.970$\pm$0.203 & \underline{1.055$\pm$0.240} & 0.775$\pm$0.195 & 1.196$\pm$0.245 \\
+CTABGAN     & & \underline{0.980$\pm$0.190} & \underline{1.079$\pm$0.220} & \textbf{1.474$\pm$0.260} & \textbf{1.745$\pm$0.300} & \underline{0.810$\pm$0.215} & \underline{1.271$\pm$0.265} \\
+TabDiff     & & 0.609$\pm$0.012 & 0.676$\pm$0.042 & 0.362$\pm$0.020 & 0.470$\pm$0.038 & 0.313$\pm$0.001 & 0.555$\pm$0.008 \\
+SMOTE       & & 0.356$\pm$0.021 & 0.517$\pm$0.045 & 0.368$\pm$0.030 & 0.482$\pm$0.042 & 0.302$\pm$0.018 & 0.497$\pm$0.024 \\
+TTVAE       & & 0.179$\pm$0.015 & 0.344$\pm$0.023 & 0.390$\pm$0.025 & 0.483$\pm$0.019 & 0.359$\pm$0.043 & 0.656$\pm$0.065 \\
+TTVAE+TBS   & & 0.194$\pm$0.014 & 0.565$\pm$0.131 & 0.469$\pm$0.043 & 0.556$\pm$0.013 & 0.542$\pm$0.076 & 0.841$\pm$0.070 \\
+CTTVAE      & & 0.375$\pm$0.22 & 0.482$\pm$0.015 & 0.423$\pm$0.024 & 0.604$\pm$0.030 & 0.509$\pm$0.010 & 0.787$\pm$0.040 \\
+CTTVAE+TBS  & & 0.380$\pm$0.019 & 0.480$\pm$0.013 & 0.468$\pm$0.037 & 0.628$\pm$0.083 & 0.650$\pm$0.031 & 0.589$\pm$0.044 \\ 
+\bottomrule
+\end{tabular}
+}
+
+\subfloat[DCR – Highly imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CR}} & \multicolumn{2}{c}{\textbf{MA}} & \multicolumn{2}{c}{\textbf{VE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+CTGAN       & & \underline{2.613$\pm$0.180} & 2.320$\pm$0.200 & \underline{0.505$\pm$0.021} & 0.512$\pm$0.051 & \underline{8.753$\pm$0.400} & \textbf{9.910$\pm$0.460} \\
+TVAE        & & 1.799$\pm$0.200 & \textbf{4.481$\pm$0.280} & 0.447$\pm$0.040 & \underline{0.849$\pm$0.075} & 7.244$\pm$0.340 & 0.750$\pm$0.100 \\
+CopulaGAN   & & 2.189$\pm$0.193 & 2.042$\pm$0.250 & \textbf{0.683$\pm$0.064} & \textbf{0.850$\pm$0.076} & \textbf{8.950$\pm$0.391} & \underline{9.628$\pm$0.422} \\
+CTABGAN     & & 1.789$\pm$0.220 & 2.799$\pm$0.290 & 0.316$\pm$0.036 & 0.521$\pm$0.046 & 8.011$\pm$0.300 & 8.736$\pm$0.350 \\
+TabDiff     & & 0.526$\pm$0.048 & 1.842$\pm$0.078 & 0.277$\pm$0.001 & 0.322$\pm$0.011 & 5.609$\pm$0.266 & 5.959$\pm$0.331 \\
+SMOTE       & & 0.454$\pm$0.037 & 1.458$\pm$0.067 & 0.233$\pm$0.012 & 0.534$\pm$0.062 & 0.565$\pm$0.212 & 1.693$\pm$0.218 \\
+TTVAE       & & 1.955$\pm$0.183 & \underline{3.160$\pm$0.427} & 0.154$\pm$0.003 & 0.568$\pm$0.039 & 1.158$\pm$0.317 & 3.084$\pm$1.383 \\
+TTVAE+TBS   & & \textbf{2.622$\pm$0.209} & 3.044$\pm$0.456 & 0.143$\pm$0.023 & 0.502$\pm$0.041 & 0.676$\pm$0.014 & 2.066$\pm$0.124 \\
+CTTVAE      & & 1.488$\pm$0.038 & 2.569$\pm$0.084 & 0.240$\pm$0.024 & 0.590$\pm$0.032 & 6.489$\pm$0.543 & 5.974$\pm$0.630 \\
+CTTVAE+TBS  & & 1.753$\pm$0.423 & 2.281$\pm$0.096 & 0.219$\pm$0.014 & 0.497$\pm$0.025 & 6.051$\pm$0.282 & 4.691$\pm$0.734 \\
+\bottomrule
+\end{tabular}
+}
+
+\label{tab:privacy_per_class_dcr}
+\end{table}
+
+
+\begin{table}[H]
+\small
+\centering
+\setlength{\tabcolsep}{1mm}
+\caption{Average and standard deviation per-class NNDR scores over three generations on each dataset. \textbf{Bold} represents the best results and \underline{underline} represents the second best on each dataset. Higher scores means better.}
+
+\subfloat[NNDR – Moderately imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CH}} & \multicolumn{2}{c}{\textbf{AD}} & \multicolumn{2}{c}{\textbf{DE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+CTGAN       & & 0.496$\pm$0.032 & 0.541$\pm$0.036 & 0.413$\pm$0.037 & 0.469$\pm$0.039 & 0.684$\pm$0.051 & 0.665$\pm$0.047 \\
+TVAE        & & \textbf{0.842$\pm$0.102} & \textbf{0.848$\pm$0.098} & \underline{0.524$\pm$0.045} & \underline{0.535$\pm$0.053} & \textbf{0.816$\pm$0.099} & \textbf{0.859$\pm$0.092} \\
+CopulaGAN   & & 0.540$\pm$0.029 & 0.511$\pm$0.032 & 0.490$\pm$0.030 & 0.479$\pm$0.033 & 0.709$\pm$0.046 & 0.699$\pm$0.048 \\
+CTABGAN    & & \underline{0.612$\pm$0.035} & \underline{0.588$\pm$0.034} & \textbf{0.606$\pm$0.050} & \textbf{0.748$\pm$0.063} & \underline{0.761$\pm$0.038} & \underline{0.748$\pm$0.038} \\
+TabDiff     & & 0.485$\pm$0.005 & 0.489$\pm$0.018 & 0.320$\pm$0.012 & 0.371$\pm$0.033 & 0.511$\pm$0.004 & 0.486$\pm$0.018 \\
+SMOTE       & & 0.276$\pm$0.020 & 0.307$\pm$0.023 & 0.203$\pm$0.017 & 0.263$\pm$0.020 & 0.341$\pm$0.023 & 0.347$\pm$0.024 \\
+TTVAE       & & 0.136$\pm$0.026 & 0.240$\pm$0.030 & 0.276$\pm$0.021 & 0.345$\pm$0.025 & 0.502$\pm$0.027 & 0.538$\pm$0.028 \\
+TTVAE+TBS   & & 0.169$\pm$0.021 & 0.336$\pm$0.027 & 0.349$\pm$0.024 & 0.447$\pm$0.040 & 0.636$\pm$0.034 & 0.601$\pm$0.038 \\
+CTTVAE      & & 0.342$\pm$0.025 & 0.327$\pm$0.026 & 0.340$\pm$0.022 & 0.402$\pm$0.027 & 0.618$\pm$0.031 & 0.582$\pm$0.029 \\
+CTTVAE+TBS  & & 0.336$\pm$0.023 & 0.344$\pm$0.028 & 0.354$\pm$0.023 & 0.420$\pm$0.028 & 0.629$\pm$0.031 & 0.621$\pm$0.031 \\
+\bottomrule
+\end{tabular}
+}
+
+\subfloat[NNDR – Highly imbalanced datasets]{
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{} & \multirow{2}{*}{} & \multicolumn{2}{c}{\textbf{CR}} & \multicolumn{2}{c}{\textbf{MA}} & \multicolumn{2}{c}{\textbf{VE}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+& & Maj. & Min. & Maj. & Min. & Maj. & Min. \\
+\midrule
+CTGAN       & & \underline{0.877$\pm$0.072} & \underline{0.893$\pm$0.075} & 0.644$\pm$0.021 & \underline{0.685$\pm$0.052} & \textbf{0.878$\pm$0.040} & \underline{0.888$\pm$0.046} \\
+TVAE        & & 0.807$\pm$0.058 & 0.834$\pm$0.066 & \textbf{0.719$\pm$0.035} & 0.567$\pm$0.034 & 0.851$\pm$0.040 & 0.540$\pm$0.042 \\
+CopulaGAN   & & \textbf{0.886$\pm$0.079} & \textbf{0.912$\pm$0.068} & \underline{0.679$\pm$0.064} & \textbf{0.738$\pm$0.075} & \textbf{0.878$\pm$0.055} & \textbf{0.892$\pm$0.049} \\
+CTABGAN     & & 0.834$\pm$0.103 & 0.822$\pm$0.121 & 0.565$\pm$0.038 & 0.351$\pm$0.036 & \underline{0.866$\pm$0.077} & 0.835$\pm$0.074 \\
+TabDiff     & & 0.538$\pm$0.019 & 0.667$\pm$0.136 & 0.416$\pm$0.008 & 0.456$\pm$0.063 & 0.721$\pm$0.025 & 0.730$\pm$0.017 \\
+SMOTE      & & 0.353$\pm$0.020 & 0.537$\pm$0.029 & 0.448$\pm$0.021 & 0.594$\pm$0.028 & 0.070$\pm$0.012 & 0.183$\pm$0.018 \\
+TTVAE      & & 0.798$\pm$0.039 & 0.738$\pm$0.035 & 0.319$\pm$0.024 & 0.477$\pm$0.030 & 0.175$\pm$0.020 & 0.302$\pm$0.024 \\
+TTVAE+TBS  & & 0.835$\pm$0.041 & 0.766$\pm$0.036 & 0.282$\pm$0.023 & 0.514$\pm$0.032 & 0.089$\pm$0.015 & 0.189$\pm$0.020 \\
+CTTVAE     & & 0.756$\pm$0.037 & 0.790$\pm$0.038 & 0.404$\pm$0.026 & 0.481$\pm$0.031 & 0.715$\pm$0.040 & 0.584$\pm$0.036 \\
+CTTVAE+TBS & & 0.784$\pm$0.038 & 0.730$\pm$0.036 & 0.428$\pm$0.027 & 0.570$\pm$0.034 & 0.674$\pm$0.038 & 0.572$\pm$0.035 \\
+\bottomrule
+\end{tabular}
+}
+
+\label{tab:privacy_per_class_nndr}
+\end{table}
+
+\section{Additional Visualizations}
+The heatmaps in Figure~\ref{fig:abs_corr_matrices} provide a complementary view of fidelity by visualizing how well the correlation structure of the real data is preserved across models in the ablation study. As shown, CTTVAE+TBS maintains lighter patterns compared to alternatives, indicating lower deviation from the real correlation structure. This visualization confirms the quantitative fidelity results, where our proposed method remains competitive with the strongest baselines while offering superior utility for minority classes.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{corr_matrices_ablation.png}
+    \caption{The absolute difference between correlation matrices computed on real and synthetic datasets for the ablation study. More intense red color indicates higher difference.}
+    \label{fig:abs_corr_matrices}
+\end{figure}
+
+PCA projections in Figure~\ref{fig:latent_space_comparison} reveal that CTTVAE yields clearer class boundaries and tighter clusters than TTVAE, confirming the role of triplet loss in enabling coherent, class-aware generation under imbalance. Furthermore, we see that the clusters keep a non spherical shape, allowing for outliers to remain as such (as opposed to how contrastive losses separate the space). Maintaining outliers is important, especially in imbalanced settings since often those are the most important instances.
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\columnwidth]{latent_space_comparison.png}
+\caption{Latent space encoded by TTVAE (left) and CTTVAE (right) for the CH dataset, projected on a 2D space using PCA for visualization purposes.}
+\label{fig:latent_space_comparison}
+\end{figure}
+
+\newpage
+\section{Runtime}
+
+We report the training and sampling time of CTTVAE and TTVAE for the Churn Modeling (CH) dataset for comparison (Table~\ref{tab:time}). Both models have been trained on A100 GPU. Although CTTVAE training is slower due to triplet mining, the overhead remains modest relative to modern GPU capabilities, and the resulting gains in minority-class utility outweigh this cost. Efficient mining or adaptive margins can further reduce runtime.
+
+\begin{table}[H]
+\centering
+% \small
+\setlength{\tabcolsep}{1mm}
+\caption{Training and sampling time for CTTVAE and TTVAE for the CH dataset.}
+
+\subfloat[\textbf{Training time}]{
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{batch\_size} & \textbf{epochs} & \textbf{train\_steps} & \textbf{training time} \\
+\midrule
+TTVAE  & 128 & 125 & 7{,}812  & 381s \\
+CTTVAE  & 128 & 125 & 7{,}812 & 803s \\
+\bottomrule
+\end{tabular}
+}
+
+\subfloat[\textbf{Sampling time}]{
+\begin{tabular}{@{}lccc}
+\toprule
+\textbf{Model} & \textbf{number to sample} & \textbf{sample\_time} \\
+\midrule
+TTVAE & 8k  & 0.29s \\
+CTTVAE & 8k & 0.33s \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:time}
+\end{table}
+
+\newpage
+\section{Hyperparameter Search Spaces}
+
+We performed hyperparameter optimization using Optuna library for both the downstream MLE classifiers (Table~\ref{tab:hp_mle}) and the generative models (Table~\ref{tab:hp_datagen}). For each generative model, we conducted 25 trials to identify the best-performing configuration based on utility scores. Due to computational constraints, hyperparameter tuning for CTTVAE and TTVAE was divided into two stages: we first selected the best model configuration and then conducted a focused search on the L2 regularization scale for both models and the triplet loss factor for CTTVAE. For experiments involving TBS, we did not run a full 25-trial search; instead, we evaluated different values of the sampling hyperparameter $\lambda$ using the previously selected best configuration for each model.
+
+\begin{table*}[h]
+% \small
+\setlength{\tabcolsep}{1mm}
+\centering
+\caption{Hyperparameter search space for classifier models used for MLE}
+\begin{tabular}{ll}
+\toprule
+\textbf{Model} & \textbf{Search Space} \\
+\midrule
+
+\multirow{5}{*}{RandomForest} 
+& num estimators: Int[50, 300] \\
+& max depth: Int[3, 20] \\
+& min samples\_split: Int[2, 10] \\
+& min samples\_leaf: Int[1, 10] \\
+
+\midrule
+
+\multirow{4}{*}{XGBoost} 
+& n\_estimators: Int[50, 300] \\
+& max\_depth: Int[3, 20] \\
+& learning rate: Float[0.01, 0.3] \\
+
+\midrule
+
+\multirow{3}{*}{LightGBM} 
+& num estimators: Int[50, 300] \\
+& num leaves: Int[20, 100] \\
+& learning rate: Float[0.01, 0.3] \\
+
+\midrule
+
+\multirow{4}{*}{CatBoost} 
+& iterations: Int[50, 300] \\
+& depth: Int[3, 10] \\
+& learning rate: Float[0.01, 0.3] \\
+
+\midrule
+
+\multirow{3}{*}{LogisticRegression} 
+& C: Float[0.01, 10.0] \\
+& penalty: \{l1, l2\} \\
+& solver: \{liblinear, saga\} \\
+
+\midrule
+
+\multirow{3}{*}{SVM} 
+& C: Float[0.01, 10.0] \\
+& kernel: \{linear, rbf\} \\
+
+\midrule
+
+\multirow{4}{*}{MLP} 
+& hidden layer: \{(100,), (50,50), (100,50)\} \\
+& activation: \{relu, tanh\} \\
+& alpha: Float[1e-5, 1e-1] \\
+& max iter: 500 (fixed) \\
+
+\midrule
+Number of tuning trials & 30 \\
+\bottomrule
+\end{tabular}
+\label{tab:hp_mle}
+\end{table*}
+
+\begin{table*}[h]
+% \small
+\setlength{\tabcolsep}{1mm}
+\centering
+\caption{Hyperparameter search space for deep generative models.}
+\begin{tabular}{ll}
+\toprule
+\textbf{Model} & \textbf{Search Space} \\
+\midrule
+
+\multirow{3}{*}{CTGAN / CopulaGAN}
+& pac: \{1, 5, 10\} \\
+& batch\_size: \{64, 128, 256, 500\} \\
+& epochs: \{50, 100, 150\} \\
+
+\midrule
+
+\multirow{2}{*}{TVAE}
+& batch\_size: \{64, 128, 256, 512\} \\
+& epochs: \{10, 50, 100, 150\} \\
+
+\midrule
+
+\multirow{3}{*}{CTABGAN}
+& batch\_size: \{64, 128, 256\} \\
+& epochs: \{150, 200, 250\} \\
+& class\_dim: \{128, 256\} \\
+& l2scale: Float[1e-6, 1e-3] \\
+& learning rate: Float[1e-4, 1e-2] \\
+& num\_channels: \{32, 64, 128\} \\
+& random\_dim: \{64, 100, 128\} \\
+
+\midrule
+
+\multirow{3}{*}{TabDiff}
+& steps: \{1000 to 8000\} \\
+& num\_timesteps: \{25, 50, 100\} \\
+
+\midrule
+
+\multirow{7}{*}{TTVAE}
+& batch\_size: \{16, 32, 64\} \\
+& epochs: \{10, 50, 100, 150\} \\
+& latent\_dim: \{16, 32, 64\} \\
+& embedding\_dim: \{64, 128, 256\} \\
+& nhead: derived from (64,4), (128,4/8), (256,8) \\
+& dim\_feedforward: \{512, 1024, 2048\} \\
+& dropout: Float[0.0, 0.3] \\
+& l2scale: \{1e-5, 1e-4, 1e-3\} \\
+
+\midrule
+
+\multirow{8}{*}{CTTVAE}
+& batch\_size: \{16, 32, 64\} \\
+& epochs: \{10, 50, 100, 150\} \\
+& latent\_dim: \{16, 32, 64\} \\
+& embedding\_dim: \{64, 128, 256\} \\
+& nhead: derived from (64,4), (128,4/8), (256,8) \\
+& dim\_feedforward: \{512, 1024, 2048\} \\
+& dropout: Float[0.0, 0.3] \\
+& triplet\_margin: Float[0.1, 1.0] \\
+& l2scale: \{1e-5, 1e-4, 1e-3\} \\
+& triplet\_factor: \{0.5, 1, 2, 5\} \\
+
+\midrule
+
+\multirow{1}{*}{TBS}
+& $\lambda$: \{0.3, 0.5,0.7, 0.9\} \\
+
+\midrule
+Number of tuning trials & 25 \\
+\bottomrule
+\end{tabular}
+\label{tab:hp_datagen}
+\end{table*}
+
+
+\end{document}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects | Milosh Devic</title>
+    <meta name="description" content="Projects by Milosh Devic in Machine Learning, Computer Vision, and Data Science.">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/layout.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/animations.css">
+    <link rel="stylesheet" href="../styles/sections.css">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body data-theme="light">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../index.html"
+                style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px; text-decoration: none; color: var(--text-primary);">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../index.html" class="hover-accent">Profile</a></li>
+                    <li><a href="../index.html#experience" class="hover-accent">Experience</a></li>
+                    <li><a href="../publications/index.html" class="hover-accent">Publications</a></li>
+                    <li><a href="#" class="hover-accent active">Projects</a></li>
+                    <li><a href="#contact" class="hover-accent">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 100px;">
+        <a href="../index.html"
+            style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-accent); margin-bottom: 2rem; font-weight: 500; text-decoration: none;"
+            class="fade-in">← Back to Home</a>
+        <section class="section fade-in">
+            <h1 class="gradient-text" style="font-size: 3rem; margin-bottom: 2rem;">Projects</h1>
+            <div class="grid grid-2">
+                <!-- Project 1 -->
+                <a href="self_aligning_vlm/index.html" class="glass-card"
+                    style="text-decoration: none; color: inherit; display: block;">
+                    <h3 style="margin-bottom: 0.5rem;">Self-Aligning VLMs</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                        Improved alignment between visual and textual components with synthetic data, increasing CLIP
+                        score by 13% and object localization accuracy by 10%.
+                    </p>
+                    <div class="skills-grid" style="margin-bottom: 1.5rem;">
+                        <span class="tag">VLM</span><span class="tag">CLIP</span><span class="tag">LoRA</span><span
+                            class="tag">Stable Diffusion</span>
+                    </div>
+                    <span class="btn btn-primary" style="font-size: 0.8rem; padding: 0.5rem 1rem;">View Details</span>
+                </a>
+
+                <!-- Project 2 -->
+                <a href="nhl-analytics/index.html" class="glass-card"
+                    style="text-decoration: none; color: inherit; display: block;">
+                    <h3 style="margin-bottom: 0.5rem;">NHL Shot Analysis</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                        Real-time sports analytics pipeline fetching live data from NHL APIs. Interactive dashboard for
+                        real-time shot prediction visualization.
+                    </p>
+                    <div class="skills-grid" style="margin-bottom: 1.5rem;">
+                        <span class="tag">TensorFlow</span><span class="tag">Streamlit</span><span
+                            class="tag">Flask</span><span class="tag">Docker</span>
+                    </div>
+                    <span class="btn btn-primary" style="font-size: 0.8rem; padding: 0.5rem 1rem;">View Details</span>
+                </a>
+
+                <!-- Project 3 -->
+                <a href="cyclenet/index.html" class="glass-card"
+                    style="text-decoration: none; color: inherit; display: block;">
+                    <h3 style="margin-bottom: 0.5rem;">Enhancing CycleNet</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                        Time series forecasting improvement (4-12% mean MAE) by integrating a Time-GNN backbone to model
+                        spatio-temporal feature dependencies.
+                    </p>
+                    <div class="skills-grid" style="margin-bottom: 1.5rem;">
+                        <span class="tag">GNN</span><span class="tag">Time Series</span><span class="tag">Probabilistic
+                            Graphical Models</span>
+                    </div>
+                    <span class="btn btn-primary" style="font-size: 0.8rem; padding: 0.5rem 1rem;">View Details</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="section fade-in" style="text-align: center; padding-bottom: 100px;">
+            <h2 style="font-size: 3rem; margin-bottom: 3rem;">Get In Touch</h2>
+
+            <div class="contact-actions justify-center">
+                <a href="mailto:milosh.devic@gmail.com" class="btn btn-primary">milosh.devic@gmail.com</a>
+                <a href="https://github.com/miloshdevic" target="_blank" class="btn"
+                    style="border: 1px solid var(--text-secondary);">GitHub</a>
+                <a href="https://linkedin.com/in/milosh-devic-933917202" target="_blank" class="btn"
+                    style="border: 1px solid var(--text-secondary);">LinkedIn</a>
+            </div>
+        </section>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: auto;">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../scripts/main.js"></script>
+</body>
+
+</html>
