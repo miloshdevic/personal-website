@@ -453,3 +453,41 @@
         padding-top: 0;
     }
 }
+
+/* --- Grid Figures --- */
+.grid-figures {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.grid-figures>.figure-container {
+    flex: 0 1 calc(50% - 1.5rem);
+    min-width: 300px;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .grid-figures>.figure-container {
+        flex: 1 1 100%;
+    }
+}
+
+/* Break-out grid for 3 columns to make images bigger */
+.grid-figures.col-3 {
+    gap: 1rem;
+}
+
+@media (min-width: 1100px) {
+    .grid-figures.col-3 {
+        width: 130%;
+        margin-left: -15%;
+    }
+}
+
+.grid-figures.col-3>.figure-container {
+    flex: 0 1 calc(33.333% - 0.67rem);
+    min-width: 200px;
+}

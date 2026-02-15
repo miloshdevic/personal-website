@@ -195,9 +195,9 @@
         <div class="project-hero">
             <a href="../../index.html#projects" class="back-link">← Back to Projects</a>
             <h1 class="gradient-text">Self-Aligning VLMs with Focus on Image Modality</h1>
-            <div class="author-list">
+            <!-- <div class="author-list">
                 Project done by Milosh Devic, Aayush Bajaj, Carlone Scott and Paul Kelendji
-            </div>
+            </div> -->
             <div class="project-meta">
                 <span><i class="fas fa-university"></i> MILA Institute / Université de Montréal</span>
                 <span><i class="far fa-calendar-alt"></i> Winter 2024</span>
@@ -252,7 +252,8 @@
                 </p>
 
                 <div class="figure-container">
-                    <img src="empirical_study.png" alt="Procedure for VLM Improvement">
+                    <img src="empirical_study.png" alt="Procedure for VLM Improvement"
+                        style="max-width: 65%; margin: 0 auto; display: block;">
                     <p class="figure-caption">Figure 1: Procedure for VLM Improvement.</p>
                 </div>
 
@@ -264,7 +265,8 @@
                 </p>
 
                 <div class="figure-container">
-                    <img src="synthetic_dataset.png" alt="Synthetic Dataset Generation Workflow">
+                    <img src="synthetic_dataset.png" alt="Synthetic Dataset Generation Workflow"
+                        style="max-width: 65%; margin: 0 auto; display: block;">
                     <p class="figure-caption">Figure 2: Workflow of the Creation of our Synthetic Dataset.</p>
                 </div>
             </section>
@@ -277,29 +279,57 @@
                     alignment between images and their corresponding captions.
                 </p>
                 <div class="figure-container">
-                    <img src="clip_scores_diagram.png" alt="CLIP Scores Calculation Diagram">
+                    <img src="clip_scores_diagram.png" alt="CLIP Scores Calculation Diagram"
+                        style="max-width: 65%; margin: 0 auto; display: block;">
                     <p class="figure-caption">Figure 3: CLIP Scores Calculation Diagram.</p>
+                </div>
+
+                <p>
+                    From our preliminary evaluation involving CLIP score distribution among the image caption pairs from
+                    synthetic and original samples (Figures 4 and 5), we have concluded that synthetic images are
+                    aligned well with their descriptive captions or prompts.
+                </p>
+
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="clip_score_comparison1.png" alt="Clip Scores subset 1">
+                        <p class="figure-caption">Figure 4: Clip Scores distribution (Subset 1).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="clip_score_comparison.png" alt="Clip Scores subset 2">
+                        <p class="figure-caption">Figure 5: Clip Scores distribution (Subset 2).</p>
+                    </div>
                 </div>
             </section>
 
             <section class="project-section hidden">
                 <h2>3. Training</h2>
                 <p>
-                    The training component focuses on fine-tuning the CLIP model using Low-Rank Adaptation (LoRA). We
-                    hypothesized that even with ranks as low as 1, substantial improvements in model performance could
-                    be
-                    observed. The preprocessing involved resizing images, tokenizing captions, and splitting the
-                    20,000-pair dataset into training, validation, and test sets.
+                    We fine-tuned the CLIP model using Low-Rank Adaptation (LoRA) to efficiently enhance performance.
+                    Leveraging our synthetic image-caption pairs, we applied the following pre-processing steps (Figure
+                    6):
+                </p>
+                <ul>
+                    <li><strong>Dataset Split:</strong> The ~20,000 pairs were divided into training, validation, and
+                        test sets for robust evaluation.</li>
+                    <li><strong>Images:</strong> Resized, tensorized, and normalized to ensure uniformity and stable
+                        training.</li>
+                    <li><strong>Captions:</strong> Padded and tokenized for effective processing.</li>
+                </ul>
+                <p>
+                    Using this prepared dataset, we employed LoRA (Figure 7) to selectively update a small subset of
+                    parameters. This approach significantly reduces computational costs while allowing for targeted
+                    improvements, which we hypothesized would be substantial even with low-rank updates.
                 </p>
 
                 <div class="grid-figures">
                     <div class="figure-container">
                         <img src="preprocessing.png" alt="Pre-processing Step">
-                        <p class="figure-caption">Figure 4: Pre-processing Step.</p>
+                        <p class="figure-caption">Figure 6: Pre-processing Step.</p>
                     </div>
                     <div class="figure-container">
                         <img src="training_clip.png" alt="Model Training: CLIP / LoRA set up">
-                        <p class="figure-caption">Figure 5: Model Training: CLIP / LoRA set up.</p>
+                        <p class="figure-caption">Figure 7: Model Training: CLIP / LoRA set up.</p>
                     </div>
                 </div>
             </section>
@@ -307,26 +337,17 @@
             <section class="project-section hidden">
                 <h2>4. Experimental Results</h2>
                 <p>
-                    We conducted an in-depth analysis of our model's performance, focusing on both quantitative
-                    benchmarks and quality evaluation of our dataset.
+                    We conducted an analysis of our model's performance, focusing on both quantitative
+                    benchmarks and quality evaluation of our dataset. We evaluated the performance of our model on the
+                    Object Localization and Size Task. Table 1 shows the results of our experiments, where we compared
+                    the performance of different models. Our baseline CLIP model achieved an accuracy of 81.58%, while
+                    the CLIP model fine-tuned with LoRA slightly decreased to 80.93%. However, when incorporating
+                    our synthetic data, the accuracy significantly improved to 92.89%. This remarkable enhancement
+                    demonstrates the effectiveness of our synthetic dataset in improving the model’s
+                    understanding of objects within images.
                 </p>
 
-                <h3>Quality Evaluation of the Dataset</h3>
-                <p style="font-size: 0.9rem; color: var(--text-secondary);">
-                    Comparison of CLIP scores between generated images and original samples shows that synthetic images
-                    align well with their descriptive captions.
-                </p>
 
-                <div class="grid-figures">
-                    <div class="figure-container">
-                        <img src="clip_score_comparison1.png" alt="Clip Scores subset 1">
-                        <p class="figure-caption">Figure 6: Clip Scores distribution (Subset 1).</p>
-                    </div>
-                    <div class="figure-container">
-                        <img src="clip_score_comparison.png" alt="Clip Scores subset 2">
-                        <p class="figure-caption">Figure 7: Clip Scores distribution (Subset 2).</p>
-                    </div>
-                </div>
 
                 <h3>Performance Benchmarks</h3>
                 <div class="results-table-container">
@@ -357,10 +378,10 @@
                         </tbody>
                     </table>
                 </div>
-                <p>
+                <!-- <p>
                     Our model achieved an accuracy of 92.89% on object localization, demonstrating the effectiveness of
                     faithful synthetic data augmentation.
-                </p>
+                </p> -->
             </section>
 
             <section class="project-section hidden">
@@ -382,7 +403,7 @@
                             class="btn btn-primary">
                             <i class="fab fa-github"></i> Source Code
                         </a>
-                        <a href="Self_Aligning_VLMs.pdf" target="_blank" class="btn">
+                        <a href="Self_Aligning_VLMs.pdf" target="_blank" class="btn btn-primary">
                             <i class="far fa-file-pdf"></i> Full Report
                         </a>
                     </div>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHL Shot Analysis | Milosh Devic</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="stylesheet" href="../../styles/layout.css">
+    <link rel="stylesheet" href="../../styles/components.css">
+    <link rel="stylesheet" href="../../styles/animations.css">
+    <link rel="stylesheet" href="../../styles/sections.css">
+    <style>
+        .project-hero {
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+            text-align: center;
+        }
+
+        .project-hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .project-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .project-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .project-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            border-left: 4px solid var(--text-accent);
+            padding-left: 1rem;
+        }
+
+        .project-section h3 {
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-accent);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+        }
+
+        .figure-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+
+
+        .figure-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: white;
+            padding: 10px;
+        }
+
+        .figure-caption {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .highlight-box {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: var(--glass-border);
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../../index.html"
+                style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px; text-decoration: none; color: var(--text-primary);">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../../index.html#about" class="hover-accent">About</a></li>
+                    <li><a href="../../index.html#experience" class="hover-accent">Experience</a></li>
+                    <li><a href="../../index.html#publications" class="hover-accent">Publications</a></li>
+                    <li><a href="../../index.html#projects" class="hover-accent">Projects</a></li>
+                    <li><a href="../../index.html#contact" class="hover-accent">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="project-hero fade-in">
+            <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: var(--spacing-md);">
+                <a href="index.html" class="back-link" style="margin-bottom: 0;">← Back to Overview</a>
+                <a href="milestone2.html" class="back-link" style="margin-bottom: 0;">Milestone 2: Modeling →</a>
+            </div>
+            <h1 class="gradient-text">NHL Shot Analysis - Exploratory Data Analysis</h1>
+            <div class="project-meta">
+                <span>Sep 2023 – Dec 2023</span>
+                <span>Sports Analytics & Real-time ML</span>
+            </div>
+        </div>
+
+        <div class="project-content">
+            <section class="project-section fade-in">
+                <h2>Introduction</h2>
+                <p>
+                    In this project, we utilized the NHL Stats API to retrieve comprehensive “play-by-play”
+                    data for a specific time period. Our primary objective was to generate insightful plots
+                    and interactive visualizations that provide users with a deeper understanding of a
+                    particular game, various events within the game, shot types, their success rates relative
+                    to the distance from the net, and shot rates with respect to distance using heat maps.
+                </p>
+                <p>
+                    Furthermore, we aimed to illustrate how frequently a team shoots from specific spots compared
+                    to the NHL average team in the same season using a shot map. In addition to gathering and
+                    preprocessing the data, using tools for data retrieval and manipulation, we engaged in
+                    in-depth discussions about the various plots and interactive visualizations we created.
+                </p>
+                <p>
+                    <strong>Key Goals:</strong>
+                </p>
+                <ul>
+                    <li><strong>Data Acquisition:</strong> Building a robust downloader for the NHL Stats API.</li>
+                    <li><strong>Interactive Debugging:</strong> Creating tools to visualize play-by-play events.</li>
+                    <li><strong>Feature Engineering:</strong> Calculating metrics like shot angle, distance, and speed.
+                    </li>
+                    <li><strong>Modeling:</strong> Predicting goal probability (xG) using Logistic Regression, XGBoost,
+                        and Neural Networks.</li>
+                </ul>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>1. Data Acquisition</h2>
+                <p>
+                    We developed a robust `NHLDataDownloader` class to interface with the NHL Stats API. This tool
+                    automates the retrieval of regular season and playoff data, handling edge cases like cancelled games
+                    or shortened seasons (e.g., due to COVID-19).
+                </p>
+                <div class="figure-container">
+                    <img src="images/milestone1/download_step1.png" alt="Setting up the environment">
+                    <p class="figure-caption">Figure 1.1: Setting up the Python environment for data retrieval.</p>
+                </div>
+                <p>
+                    The downloader allows for partial downloads and can resume where it left off, making it efficient
+                    for large datasets spanning multiple seasons. It separates regular season and playoff data handling
+                    to ensure accurate data collection.
+                </p>
+                <div class="figure-container">
+                    <img src="images/milestone1/download_step3.png" alt="Download process">
+                    <p class="figure-caption">Figure 1.2: The download process in action.</p>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>2. Interactive Debugging Tool</h2>
+                <p>
+                    The code is included in the interactive_debug.ipynb in the NHL_analytics repository. Here the
+                    interactive debugging tool allows the user to to flip through all of the events, for every game of a
+                    given season, with the ability to switch between the regular season and playoffs. WIth the inputs
+                    (game ID and event ID) entered by the user, the description of the game will be printed. The
+                    description compares the goals, shots on goals, and so on of the home team and away team. Then a
+                    rink figure with the description of the event is shown. THe blue point represents the location of
+                    the event. Lastly, a detailed description of the event is printed, including the time, location,
+                    players’ names, result, and so on.
+                </p>
+                <div class="figure-container">
+                    <img src="images/milestone1/debug.png" alt="Interactive Debugging Tool">
+                    <p class="figure-caption">Figure 2.1: Visualizing events on the rink with the debugging tool.</p>
+                </div>
+
+                <p>
+                    As you can see in our example, after the user inputs (game ID and event ID) are provided, the game
+                    information between OTT and TOR is printed, and the location of the event is shown on the figure,
+                    the title of the figure tells us “Mark Stone blocked shot from Jake Gardiner at 01:10 period 1”.
+                    Then the event details are printed below. And the user could change the inputs to retrieve the
+                    information of any game and event we have.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>3. Exploratory Data Analysis</h2>
+
+                <h3>3.1 Shot Types and Their Impact</h3>
+                <p>
+                    In our analysis of the different shot types and their impact on the game, we examined the data from
+                    a selected NHL season (in our case, the 2016-17 season) to gain insights into which shot is the most
+                    dangerous and which one is the most common. We plotted a stacked bar graph that overlays the number
+                    of goals over the number of shots for each shot type.
+                </p>
+                <p>
+                    The wrist shot appears to be the most dangerous shot as it is the shot that contributed to the
+                    greatest number of goals in the chosen season. It is also the most common shot by far, which is
+                    quite understandable given that it is arguably the shot with the most accuracy, quick release, and
+                    goal-scoring ability, so obviously players tend to use it way more than the other types of shots.
+                </p>
+                <div class="figure-container">
+                    <img src="images/milestone1/shot_types_2016-17.png" alt="Shot Types 2016-17">
+                    <p class="figure-caption">Figure 3.1: Shot types breakdown (goals vs. shots).</p>
+                </div>
+
+                <h3>3.2 Shot Distance & Goal Probability</h3>
+                <p>
+                    In our analysis of the distance from which a shot is taken and the probability it is a goal, we
+                    visually represented that data for the 2018-19 to 2020-21 NHL seasons. We created one line plot for
+                    each season to understand the relation between the distance of a shot and its probability of being a
+                    goal. We have also plotted one graph with all the line plots of each season to facilitate an easier
+                    comparison between these three seasons.
+                </p>
+                <p>
+                    We have noticed that the shots taken from a distance of 0 feet to about 40 feet from the net had the
+                    highest probability of scoring. We see that the further the shot is taken, the smaller the chance is
+                    for a goal to be scored. There is however a small but noticeable spike for the bigger distances (75
+                    feet and more) which can be explained. These shots from very far distances (often from the side of
+                    the rink players defend) are usually taken when the opposing team remove their goaltender and leave
+                    their net empty to have an extra player in offense in the hopes of scoring a goal to bring the score
+                    to a draw.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone1/shot_goal_ratio_vs_distance_2018-19.png"
+                            alt="Shot Count by Distance">
+                        <p class="figure-caption">Figure 3.2: Shot Goal Ratio vs. Distance (2018-19).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone1/shot_goal_ratio_vs_distance_2019-20.png"
+                            alt="Shot Count by Distance">
+                        <p class="figure-caption">Figure 3.3: Shot Goal Ratio vs. Distance (2019-20).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone1/shot_goal_ratio_vs_distance_2020-21.png"
+                            alt="Shot Count by Distance">
+                        <p class="figure-caption">Figure 3.4: Shot Goal Ratio vs. Distance (2020-21).</p>
+                    </div>
+                </div>
+
+                <p>
+                    But what is noteworthy about these line plots is their striking similarity across the three
+                    seasons (it can be very well seen in the last graph). This led us to the following key takeaway
+                    from these line plots, which is the remarkable consistency in the relationship between the shot
+                    distance and the goal-scoring probability. Despite all the external factors, varying strategies
+                    over the seasons, player rosters changing very often, the data suggests that the shot distance
+                    is still a very important factor in the prediction of a shot being converted to a goal.
+                </p>
+
+                <div class="figure-container">
+                    <img src="images/milestone1/shot_goal_ratio_vs_distance_combined.png"
+                        alt="Combined Shot Goal Ratio">
+                    <p class="figure-caption">Figure 3.5: Goal Probability vs. Distance (2018-21).</p>
+                </div>
+
+                <h3>3.3 Percentage of Goals per Shots by Distance Category and Shot Type</h3>
+                <p>
+                    By looking at our heatmap, we can say that the deflected shot might be one of the most dangerous
+                    shots as it has one of the highest percentage of goals per shot for short distances (between 0-10
+                    ft). It has a nearly 70% success rate for deflections that happened between 0 and 5 ft from the net.
+                    This can be explained by the following: a deflection happens when a player changes the direction of
+                    a shot (whether it is intentional or not) as the puck is being shot at the net at a very high speed.
+                    The goaltender sees the shot and expects it to go in some direction and then at the last minute it
+                    changes due to a deflection and if it is close enough it doesn’t give him the chance to readjust.
+                </p>
+                <p>
+                    It is worth noting that for all the shot types, the closer they are to the net, the higher their
+                    percentage of being converted to a goal is.
+                </p>
+                <div class="figure-container">
+                    <img src="images/milestone1/heatmap_goal_percentage_2016-17.png" alt="Goal Percentage Heatmap">
+                    <p class="figure-caption">Figure 3.6: Goal percentage heatmap for 2016-17.</p>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>4. Shot Maps & Team Performance</h2>
+                <p>
+                    By comparing team shot density against the league average, we can visualize offensive effectiveness.
+                    Blue areas represent below-average shooting density, while red areas indicate high-danger offensive
+                    pressure.
+                </p>
+
+                <h3>Interactive Shot Maps</h3>
+                <p>Explore the interactive shot maps for different seasons:</p>
+                <div class="flex flex-wrap gap-sm" style="margin-bottom: 2rem;">
+                    <a href="blogpost-nhl-analytics/shotMaps/2016-2017_season_nhl_shot_map.html" target="_blank"
+                        class="btn btn-sm btn-secondary">2016-17 Season</a>
+                    <a href="blogpost-nhl-analytics/shotMaps/2017-2018_season_nhl_shot_map.html" target="_blank"
+                        class="btn btn-sm btn-secondary">2017-18 Season</a>
+                    <a href="blogpost-nhl-analytics/shotMaps/2018-2019_season_nhl_shot_map.html" target="_blank"
+                        class="btn btn-sm btn-secondary">2018-19 Season</a>
+                    <a href="blogpost-nhl-analytics/shotMaps/2019-2020_season_nhl_shot_map.html" target="_blank"
+                        class="btn btn-sm btn-secondary">2019-20 Season</a>
+                    <a href="blogpost-nhl-analytics/shotMaps/2020-2021_season_nhl_shot_map.html" target="_blank"
+                        class="btn btn-sm btn-secondary">2020-21 Season</a>
+                </div>
+
+                <h3>4.1 Colorado Avalanche: Turnaround Story</h3>
+                <p>
+                    The transformation of the Avalanche from 2016 (finishing last) to 2021 (finishing 1st) is clearly
+                    visible.
+                    In 2016, they shot way below average near the net. In 2021, they dominated the high-danger zone.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone1/colorado_avalanche_sm_2016-17.png" alt="Colorado 2016-17">
+                        <p class="figure-caption">Figure 4.1: Colorado 2016-17 (Last Place).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone1/colorado_avalanche_sm_2020-21.png" alt="Colorado 2020-21">
+                        <p class="figure-caption">Figure 4.2: Colorado 2020-21 (First Place).</p>
+                    </div>
+                </div>
+
+                <h3>4.2 League Dominance vs. Struggles</h3>
+                <p>
+                    <strong>Tampa Bay Lightning</strong> showed consistent dominance in the slot area across recent
+                    seasons,
+                    controlling the offensive play.
+                </p>
+                <div class="grid-figures col-3">
+                    <div class="figure-container">
+                        <img src="images/milestone1/tampabay_lightning_sm_2018-19.png" alt="Tampa Bay 2018-19">
+                        <p class="figure-caption">Figure 4.3: Tampa Bay Lightning 2018-19.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone1/tampabay_lightning_sm_2019-20.png" alt="Tampa Bay 2019-20">
+                        <p class="figure-caption">Figure 4.4: Tampa Bay Lightning 2019-20.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone1/tampabay_lightning_sm_2020-21.png" alt="Tampa Bay 2020-21">
+                        <p class="figure-caption">Figure 4.5: Tampa Bay Lightning 2020-21.</p>
+                    </div>
+                </div>
+
+                <p>
+                    In contrast, the <strong>Buffalo Sabres</strong> struggled to penetrate the high-danger areas,
+                    forced to take shots from the perimeter.
+                </p>
+                <div class="grid-figures col-3">
+                    <div class="figure-container">
+                        <img src="images/milestone1/buffalo_sabres_sm_2018-19.png" alt="Buffalo Sabres 2018-19">
+                        <p class="figure-caption">Figure 4.6: Buffalo Sabres 2018-19.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone1/buffalo_sabres_sm_2019-20.png" alt="Buffalo Sabres 2019-20">
+                        <p class="figure-caption">Figure 4.7: Buffalo Sabres 2019-20.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone1/buffalo_sabres_sm_2020-21.png" alt="Buffalo Sabres 2020-21">
+                        <p class="figure-caption">Figure 4.8: Buffalo Sabres 2020-21.</p>
+                    </div>
+                </div>
+                <p>
+                    These graphs obviously don’t paint a complete picture because many other aspects need to be
+                    considered when trying to explain a team’s success or struggle, one of them being the amount of
+                    shots allowed compared to the league’s average (indeed, scoring many goals doesn’t mean much if on
+                    the other end they concede goals as easily). However, this still gives us a good picture of how well
+                    the offense performs.
+                </p>
+            </section>
+
+            <section class="project-section hidden"
+                style="border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+                <div class="flex justify-between items-center flex-wrap gap-md">
+                    <div class="flex gap-md">
+                        <a href="https://github.com/miloshdevic/NHL_analytics" target="_blank" class="btn btn-primary">
+                            <i class="fab fa-github"></i> Source Code
+                        </a>
+                        <a href="https://miloshdevic.github.io/blogpost-nhl-analytics/2023/10/15/nhl-data-analysis-milestone1/ target="
+                            _blank" class="btn btn-primary">
+                            <i class="fab fa-github"></i> Full Blog Post for Milestone 1
+                        </a>
+                        <a href="milestone2.html" class="btn btn-primary">
+                            Next: Milestone 2 →
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../../scripts/main.js"></script>
+</body>
+
+</html>

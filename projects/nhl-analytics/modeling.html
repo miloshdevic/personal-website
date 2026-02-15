@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHL Shot Analysis - Modeling | Milosh Devic</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="stylesheet" href="../../styles/layout.css">
+    <link rel="stylesheet" href="../../styles/components.css">
+    <link rel="stylesheet" href="../../styles/animations.css">
+    <link rel="stylesheet" href="../../styles/sections.css">
+    <style>
+        .project-hero {
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+            text-align: center;
+        }
+
+        .project-hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .project-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .project-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .project-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            border-left: 4px solid var(--text-accent);
+            padding-left: 1rem;
+        }
+
+        .project-section h3 {
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-accent);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+        }
+
+        .highlight-box {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: var(--glass-border);
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../../index.html"
+                style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px; text-decoration: none; color: var(--text-primary);">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../../index.html#about" class="hover-accent">About</a></li>
+                    <li><a href="../../index.html#experience" class="hover-accent">Experience</a></li>
+                    <li><a href="../../index.html#projects" class="hover-accent">Projects</a></li>
+                    <li><a href="../../index.html#publications" class="hover-accent">Publications</a></li>
+                    <li><a href="../../index.html#contact" class="hover-accent">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="project-hero fade-in">
+            <a href="index.html" class="back-link">← Back to Data Analysis</a>
+            <h1 class="gradient-text">NHL Shot Analysis - Modeling</h1>
+            <div class="project-meta">
+                <span>Milestone 2</span>
+                <span>Advanced Modeling & Evaluation</span>
+            </div>
+        </div>
+
+        <div class="project-content">
+            <section class="project-section hidden">
+                <h2>5. Feature Engineering</h2>
+                <p>
+                    "Expected Goals" (xG) relies on quantifying the quality of a shot. We engineered a comprehensive set
+                    of features, including:
+                </p>
+                <ul class="feature-list"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    <li><strong>Shot Context:</strong> Shot Type, DistanceToGoal, ShootingAngle</li>
+                    <li><strong>Game State:</strong> Period, GameTime, ScoreDiff, isEmptyNet</li>
+                    <li><strong>Temporal Dynamics:</strong> TimeSinceLastEvent, LastEvent Type</li>
+                    <li><strong>Spatial Dynamics:</strong> DistanceFromLastEvent, ChangeInAngle, Speed</li>
+                </ul>
+                <div class="figure-container">
+                    <img src="images/milestone2/explain_angle_speed.png" alt="Feature Engineering - Speed and Angle"
+                        style="max-width: 80%; border-radius: 4px; display: block; margin: 0 auto; background: white; padding: 10px;">
+                    <p class="figure-caption">Figure 5.1: Visualizing rebound angle change and speed features.</p>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>6. Baseline Models (Logistic Regression)</h2>
+                <p>
+                    We started with Logistic Regression as a baseline. Initial results showed high accuracy (91%) but
+                    were misleading due to class imbalance
+                    (goals are rare). The confusion matrix revealed the model was biased towards predicting "No Goal".
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/confusion_matrix_lr.png" alt="Confusion Matrix Imbalanced">
+                        <p class="figure-caption">Figure 6.1: Confusion Matrix (Imbalanced).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/confusion_matrix_lr_resampled.png" alt="Confusion Matrix Resampled">
+                        <p class="figure-caption">Figure 6.2: Confusion Matrix (Resampled).</p>
+                    </div>
+                </div>
+                <p>
+                    After resampling, we evaluated performance using ROC Curves and Calibration plots.
+                    Models using both <strong>Distance</strong> and <strong>Angle</strong> performed better than random,
+                    but reliability was low (under-confident).
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/ROC_curve_3lr.png" alt="ROC Curve Baseline">
+                        <p class="figure-caption">Figure 6.3: ROC Curves (Baseline Models).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/reliability_curve_3lr.png" alt="Reliability Curve Baseline">
+                        <p class="figure-caption">Figure 6.4: Reliability Curve (Baseline Models).</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>7. Advanced Models</h2>
+
+                <h3>7.1 XGBoost</h3>
+                <p>
+                    We improved performance using XGBoost. Through Grid Search Cross-Validation, we tuned
+                    hyperparameters
+                    (<code>max_depth</code>, <code>gamma</code>, <code>n_estimators</code>).
+                    Feature selection with SHAP confirmed that <strong>TimeLastEvent</strong> and
+                    <strong>DistanceLastEvent</strong>
+                    were critical predictors.
+                </p>
+                <div class="figure-container">
+                    <img src="images/milestone2/SHAP.png" alt="SHAP Feature Importance"
+                        style="max-width: 80%; border-radius: 4px; display: block; margin: 0 auto;">
+                    <p class="figure-caption">Figure 7.1: SHAP Feature Importance.</p>
+                </div>
+                <p>
+                    The optimized XGBoost model achieved near-ideal ROC performance and significantly better
+                    calibration.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/xgboost3_1.png" alt="XGBoost ROC">
+                        <p class="figure-caption">Figure 7.2: XGBoost ROC Curve.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/xgboost3_4.png" alt="XGBoost Reliability">
+                        <p class="figure-caption">Figure 7.3: XGBoost Reliability Curve.</p>
+                    </div>
+                </div>
+
+                <h3>7.2 Neural Networks</h3>
+                <p>
+                    We implemented a Neural Network using Keras/TensorFlow. After checking hyperparameters (Learning
+                    Rate: 0.0001, 16 neurons),
+                    the model achieved an AUC of ~0.99. It showed arguably the best reliability curve, closely matching
+                    the ideal calibration line.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/ROC_curve_rfc_ft.png" alt="NN ROC">
+                        <p class="figure-caption">Figure 7.4: Neural Network ROC Curve.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/reliability_curve_rfc_ft.png" alt="NN Reliability">
+                        <p class="figure-caption">Figure 7.5: Neural Network Reliability Curve.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>8. Evaluation on Test Sets</h2>
+                <p>
+                    We evaluated our best models on the <strong>2019-20 Regular Season</strong> and
+                    <strong>Playoffs</strong> data.
+                </p>
+
+                <h3>8.1 Regular Season (2019-20)</h3>
+                <p>
+                    XGBoost and Neural Networks demonstrated superior separation capabilities (AUC ≈ 1.0) compared to
+                    Logistic Regression.
+                    However, reliability curves showed some overfitting/calibration issues on unseen data.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/ROC_test_reg_season.png" alt="ROC Test Regular Season">
+                        <p class="figure-caption">Figure 8.1: ROC Curves (Regular Season).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/reliability_curve_test_reg_season.png"
+                            alt="Reliability Test Regular Season">
+                        <p class="figure-caption">Figure 8.2: Reliability Curves (Regular Season).</p>
+                    </div>
+                </div>
+
+                <h3>8.2 Playoffs (2019-20)</h3>
+                <p>
+                    Performance dipped slightly on Playoff data (smaller sample size), but the models generalized well.
+                    XGBoost maintained the most consistent calibration.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>9. Conclusion</h2>
+                <p>
+                    This project demonstrated that while shot distance and angle are foundational to predicting goals,
+                    advanced features like <strong>rebound dynamics</strong> and <strong>speed</strong> significantly
+                    enhance predictive power.
+                    <strong>XGBoost</strong> and <strong>Neural Networks</strong> proved far superior to baseline linear
+                    models,
+                    offering robust tools for modern hockey analytics.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Tools Used</h2>
+                <div class="skills-grid">
+                    <span class="tag">Python</span>
+                    <span class="tag">TensorFlow</span>
+                    <span class="tag">XGBoost</span>
+                    <span class="tag">SHAP</span>
+                    <span class="tag">Streamlit</span>
+                    <span class="tag">Comet ML</span>
+                    <span class="tag">Docker</span>
+                    <span class="tag">Matplotlib/Seaborn</span>
+                </div>
+            </section>
+
+            <section class="project-section hidden"
+                style="border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+                <div class="flex justify-between items-center flex-wrap gap-md">
+                    <div class="flex gap-md">
+                        <a href="index.html" class="btn btn-primary">
+                            ← Data Analysis
+                        </a>
+                        <a href="https://github.com/miloshdevic/NHL_analytics" target="_blank" class="btn btn-primary">
+                            <i class="fab fa-github"></i> Source Code
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../../scripts/main.js"></script>
+</body>
+
+</html>

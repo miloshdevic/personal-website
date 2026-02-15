@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHL Shot Analysis - Modeling | Milosh Devic</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="stylesheet" href="../../styles/layout.css">
+    <link rel="stylesheet" href="../../styles/components.css">
+    <link rel="stylesheet" href="../../styles/animations.css">
+    <link rel="stylesheet" href="../../styles/sections.css">
+    <style>
+        .project-hero {
+            padding: var(--spacing-xl) 0 var(--spacing-lg);
+            text-align: center;
+        }
+
+        .project-hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .project-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .project-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .project-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            border-left: 4px solid var(--text-accent);
+            padding-left: 1rem;
+        }
+
+        .project-section h3 {
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-accent);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+        }
+
+        .figure-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .figure-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: white;
+            padding: 10px;
+        }
+
+        .figure-caption {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .highlight-box {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: var(--glass-border);
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <header
+        style="position: fixed; width: 100%; top: 0; padding: 20px; z-index: 100; backdrop-filter: blur(10px); background: var(--header-bg);">
+        <nav class="container flex justify-between items-center">
+            <a href="../../index.html"
+                style="font-weight: 700; font-size: 1.2rem; letter-spacing: -1px; text-decoration: none; color: var(--text-primary);">MD.</a>
+            <div class="flex items-center gap-md">
+                <ul class="flex gap-md" style="font-size: 0.9rem;">
+                    <li><a href="../../index.html#about" class="hover-accent">About</a></li>
+                    <li><a href="../../index.html#experience" class="hover-accent">Experience</a></li>
+                    <li><a href="../../index.html#publications" class="hover-accent">Publications</a></li>
+                    <li><a href="../../index.html#projects" class="hover-accent">Projects</a></li>
+                    <li><a href="../../index.html#contact" class="hover-accent">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" class="btn btn-primary"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer;" aria-label="Toggle Theme">
+                    <span id="theme-text">Light Mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="project-hero fade-in">
+            <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: var(--spacing-md);">
+                <a href="milestone1.html" class="back-link" style="margin-bottom: 0;">← Back to Data Analysis</a>
+                <a href="index.html" class="back-link" style="margin-bottom: 0;">Back to Overview</a>
+            </div>
+            <h1 class="gradient-text">NHL Shot Analysis - Modeling</h1>
+            <div class="project-meta">
+                <span>Milestone 2</span>
+                <span>Advanced Modeling & Evaluation</span>
+            </div>
+        </div>
+
+        <div class="project-content">
+            <section class="project-section hidden">
+                <h2>Introduction</h2>
+                <p>
+                    The first milestone gave us some experience with data wrangling, exploratory data analysis, and
+                    creating visualizations. Now, we’ll get our hands dirty with feature engineering, feature selection,
+                    and statistical modelling. We will continue to build on the play-by-play data acquired from the NHL
+                    stats API, and tackle the problem of predicting the probability that a shot is a goal. We will
+                    experiment with a number of different models and features, and produce some visualizations to gauge
+                    the effectiveness of our model. We will be using comet.ml to keep track of our experiments with our
+                    group.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>NHL Background: Expected Goals (xG)</h2>
+                <p>
+                    A common question when evaluating sports is “how well did a team play?” or “how well did a
+                    particular player perform?”. To answer such questions, we need metrics that capture the quality of
+                    performance.
+                    Traditional metrics like goals are rare and ‘noisy’ events that don't account for factors like
+                    goalie performance.
+                    Top-level shot counts are also flawed because they lack the notion of <strong>shot quality</strong>
+                    (e.g., a shot from the blue line vs. a slot shot).
+                </p>
+
+                <div class="highlight-box">
+                    <p style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-accent);">The Core Concept:</p>
+                    <p style="margin-bottom: 0;">
+                        <strong>Expected Goals (xG)</strong> estimates the quality of a shot by calculating the
+                        likelihood
+                        (probability) that it would have resulted in a goal, based on historical data.
+                    </p>
+                </div>
+
+                <p>
+                    Analysts use statistical modelling to determine this likelihood based on a variety of features:
+                </p>
+                <ul
+                    style="list-style: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; color: var(--text-secondary);">
+                    <li style="margin-bottom: 0.5rem;"><strong>Position:</strong> Distance and angle from the net are
+                        crucial predictors.</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Shot Type:</strong> Wrist shots, slap shots, and
+                        deflections have different success rates.</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Context:</strong> Game state (power play, empty net) and
+                        prior events (rebounds, rushes).</li>
+                </ul>
+
+                <p>
+                    From a data science perspective, we model this as a <strong>binary classification task</strong>
+                    (Goal vs. No Goal). However, the binary outcome [0, 1] is less useful than the <strong>raw
+                        probability</strong> produced by the model.
+                </p>
+                <p>
+                    This probability serves as our proxy for "shot quality". A high-probability shot that doesn't go in
+                    isn't necessarily a "mistake" by the model; it was a high-quality chance that was saved or missed.
+                    Aggregating these probabilities gives us the Expected Goals (xG) metric, a powerful tool for
+                    evaluating
+                    overall offensive generation.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>5. Feature Engineering I</h2>
+
+                <h3>5.1 Shot Count Analysis</h3>
+                <div class="grid-figures col-3">
+                    <div class="figure-container">
+                        <img src="images/milestone2/hist_shot_count_by_distance.png" alt="Shot Count by Distance">
+                        <p class="figure-caption">Figure 5.1: Histogram of Shot Count by Distance.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/hist_shot_count_by_angle.png" alt="Shot Count by Angle">
+                        <p class="figure-caption">Figure 5.2: Histogram of Shot Count by Angle.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/2D_hist_distance_vs_angle.png" alt="Distance vs Angle">
+                        <p class="figure-caption">Figure 5.3: 2D Histogram of Distance vs Shooting Angle.</p>
+                    </div>
+                </div>
+                <p>
+                    We observe that nearly 80% of shots are taken inside the offensive zone (less than 65 feet).
+                    As for angles, most goals are scored between 75-90 degrees (relative to the goal line), where the
+                    goaltender's coverage is minimized.
+                    Interestingly, there is a high goal rate for very small angles (0-10 degrees), likely due to
+                    close-range tap-ins or deflections.
+                </p>
+
+                <h3>5.2 Goal Rate Analysis</h3>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/goal_rate_vs_distance.png" alt="Goal Rate vs Distance">
+                        <p class="figure-caption">Figure 5.4: Goal Rate vs Distance.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/goal_rate_vs_angle.png" alt="Goal Rate vs Angle">
+                        <p class="figure-caption">Figure 5.5: Goal Rate vs Shooting Angle.</p>
+                    </div>
+                </div>
+                <p>
+                    Goal rate increases significantly as distance decreases, peaking at 70-80% within 10 feet.
+                    We also see a spike in goal rate at very long distances (>90ft), essentially due to empty net goals.
+                </p>
+
+                <h3>5.3 Empty Net Analysis</h3>
+                <div class="figure-container">
+                    <img src="images/milestone2/hist_goal_distance_empty_nets.png" alt="Empty Net Goals">
+                    <p class="figure-caption">Figure 5.6: Goals by Distance (Empty Net vs Non-Empty).</p>
+                </div>
+                <p>
+                    We can see that most of the goals scored are in fact non-empty net goals. Once again, most of the
+                    goals are scored within the offensive zone (less than 65 feet from the net). We can also see that
+                    most of the empty net goals are actually scored within 100 feet of the net. Players will attempt
+                    shots at an empty net at greater distances since there isn’t a goaltender.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>6. Baseline Models (Logistic Regression)</h2>
+                <p>
+                    We started with a basic Logistic Regression model. While it achieved 91% accuracy, this was
+                    misleading due to severe class imbalance (goals are rare events).
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/confusion_matrix_lr.png" alt="Confusion Matrix Imbalanced">
+                        <p class="figure-caption">Figure 6.1: Confusion Matrix (Imbalanced).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/confusion_matrix_lr_resampled.png" alt="Confusion Matrix Resampled">
+                        <p class="figure-caption">Figure 6.2: Confusion Matrix (Resampled).</p>
+                    </div>
+                </div>
+
+                <h3>Performance Evaluation</h3>
+                <p>
+                    After resampling, we evaluated the models using ROC curves and calibration plots. The model
+                    combining both Distance and Angle performed slightly better than using Distance alone.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/ROC_curve_3lr.png" alt="ROC Curve Baseline">
+                        <p class="figure-caption">Figure 6.3: ROC Curves and AUC (Baseline).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/reliability_curve_3lr.png" alt="Reliability Curve Baseline">
+                        <p class="figure-caption">Figure 6.4: Reliability/Calibration Curve (Baseline).</p>
+                    </div>
+                </div>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/goal_rate_3lr.png" alt="Goal Rate vs Probability">
+                        <p class="figure-caption">Figure 6.5: Goal Rate vs Shot Probability.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/cumulative_3lr.png" alt="Cumulative Proportion">
+                        <p class="figure-caption">Figure 6.6: Cumulative Proportion of Goals.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>7. Feature Engineering II</h2>
+                <p>
+                    To improve our models, we engineered a more comprehensive set of features, including:
+                </p>
+                <ul class="feature-list"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    <li><strong>Game Context:</strong> Shot Type, Period, GameTime, ScoreDiff, isEmptyNet</li>
+                    <li><strong>Spatial/Temporal:</strong> X/Y Coordinates, LastEvent Type, TimeSinceLastEvent,
+                        DistanceFromLastEvent</li>
+                    <li><strong>Derived:</strong> Rebound (bool), AngleChange, Speed</li>
+                </ul>
+                <div class="figure-container">
+                    <img src="images/milestone2/explain_angle_speed.png" alt="Visualizing Features">
+                    <p class="figure-caption">Figure 7.1: Visualizing "Speed" and "AngleChange" features.</p>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>8. Advanced Models (XGBoost)</h2>
+                <h3>8.1 XGBoost & Hyperparameter Tuning</h3>
+                <p>
+                    We utilized XGBoost and performed Grid Search Cross-Validation to tune <code>max_depth</code>,
+                    <code>gamma</code>, and <code>n_estimators</code>. This process significantly improved model
+                    accuracy and calibration.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/xgboost2_1.png" alt="XGBoost ROC">
+                        <p class="figure-caption">Figure 8.1: Tuned XGBoost ROC Curve.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/xgboost2_4.png" alt="XGBoost Reliability">
+                        <p class="figure-caption">Figure 8.2: Tuned XGBoost Reliability Curve.</p>
+                    </div>
+                </div>
+
+                <h3>8.2 Feature Selection (SHAP)</h3>
+                <p>
+                    Using SHAP (SHapley Additive exPlanations), we identified the top features driving our predictions:
+                    <strong>TimeLastEvent</strong>, <strong>DistanceLastEvent</strong>, and <strong>isEmptyNet</strong>
+                    were among the most impactful.
+                </p>
+                <div class="figure-container">
+                    <img src="images/milestone2/SHAP.png" alt="SHAP Feature Importance">
+                    <p class="figure-caption">Figure 8.3: SHAP Feature Importance Summary.</p>
+                </div>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/xgboost3_1.png" alt="feature selected XGBoost ROC">
+                        <p class="figure-caption">Figure 8.4: FS XGBoost ROC Curve.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/xgboost3_4.png" alt="feature selected XGBoost reliability">
+                        <p class="figure-caption">Figure 8.5: FS XGBoost Reliability Curve.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>9. Final Models & Best Shot</h2>
+                <p>
+                    We explored Random Forest and Neural Networks to push predictive performance further.
+                </p>
+
+                <h3>9.1 Decision Trees & Random Forest</h3>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/ROC_curve_dt.png" alt="Decision Tree ROC">
+                        <p class="figure-caption">Figure 9.1: ROC Curves (Decision Trees).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/reliability_curve_dt.png" alt="Decision Tree Reliability">
+                        <p class="figure-caption">Figure 9.2: Reliability Curve (Decision Trees).</p>
+                    </div>
+                </div>
+
+                <h3>9.2 Neural Networks</h3>
+                <p>
+                    We implemented a Neural Network using Keras/TensorFlow. After hyperparameter optimization (Learning
+                    Rate: 0.0001, 16 neurons)
+                    and feature selection, the model achieved an AUC of ~0.99 with an excellent reliability curve.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/ROC_curve_rfc_ft.png" alt="Neural Network ROC">
+                        <p class="figure-caption">Figure 9.3: Neural Network ROC Curve.</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/reliability_curve_rfc_ft.png" alt="Neural Network Reliability">
+                        <p class="figure-caption">Figure 9.4: Neural Network Reliability Curve.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>10. Evaluation on Test Sets</h2>
+                <p>
+                    We evaluated our best models on unseen data from the <strong>2019-20 Regular Season</strong> and
+                    <strong>Playoffs</strong>.
+                </p>
+
+                <h3>10.1 Regular Season (2019-20)</h3>
+                <p>
+                    XGBoost and Neural Networks demonstrated superior separation capabilities (AUC ≈ 1.0) compared to
+                    Logistic Regression.
+                    However, reliability curves hinted at some overconfidence/calibration issues on new data.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/ROC_test_reg_season.png" alt="ROC Test Regular">
+                        <p class="figure-caption">Figure 10.1: ROC Curves (Regular Season).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/reliability_curve_test_reg_season.png"
+                            alt="Reliability Test Regular">
+                        <p class="figure-caption">Figure 10.2: Reliability Curves (Regular Season).</p>
+                    </div>
+                </div>
+
+                <h3>10.2 Playoffs (2019-20)</h3>
+                <p>
+                    Performance dipped slightly on Playoff data due to smaller sample size, but models generalized well.
+                    XGBoost maintained the most consistent calibration among advanced models.
+                </p>
+                <div class="grid-figures">
+                    <div class="figure-container">
+                        <img src="images/milestone2/ROC_test_playoffs.png" alt="ROC Test Playoffs">
+                        <p class="figure-caption">Figure 10.3: ROC Curves (Playoffs).</p>
+                    </div>
+                    <div class="figure-container">
+                        <img src="images/milestone2/reliability_curve_test_playoffs.png"
+                            alt="Reliability Test Playoffs">
+                        <p class="figure-caption">Figure 10.4: Reliability Curves (Playoffs).</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>11. Conclusion</h2>
+                <p>
+                    This project demonstrated that while shot distance and angle are foundational to predicting goals,
+                    advanced features like <strong>rebound dynamics</strong> and <strong>speed</strong> significantly
+                    enhance predictive power.
+                    The <strong>Neural Network</strong>, finely tuned, offered the best balance of accuracy and
+                    calibration, though
+                    <strong>XGBoost</strong> proved to be a robust and efficient alternative.
+                </p>
+            </section>
+
+            <section class="project-section hidden">
+                <h2>Tools Used</h2>
+                <div class="skills-grid">
+                    <span class="tag">Python</span>
+                    <span class="tag">TensorFlow</span>
+                    <span class="tag">XGBoost</span>
+                    <span class="tag">SHAP</span>
+                    <span class="tag">Streamlit</span>
+                    <span class="tag">Comet ML</span>
+                    <span class="tag">Docker</span>
+                    <span class="tag">Matplotlib/Seaborn</span>
+                </div>
+            </section>
+
+            <section class="project-section hidden"
+                style="border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+                <div class="flex justify-between items-center flex-wrap gap-md">
+                    <div class="flex gap-md">
+                        <a href="milestone1.html" class="btn btn-primary">
+                            ← Data Analysis
+                        </a>
+                        <a href="https://github.com/miloshdevic/NHL_analytics" target="_blank" class="btn btn-primary">
+                            <i class="fab fa-github"></i> Source Code
+                        </a>
+                        <a href="https://miloshdevic.github.io/blogpost-nhl-analytics/2023/11/15/nhl-data-analysis-milestone2/"
+                            target="_blank" class="btn btn-primary">
+                            <i class="fab fa-github"></i> Full Blog Post for Milestone 2
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer
+        style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>Designed & Built by Milosh Devic</p>
+    </footer>
+
+    <script src="../../scripts/main.js"></script>
+</body>
+
+</html>

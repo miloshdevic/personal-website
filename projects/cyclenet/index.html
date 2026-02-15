@@ -195,9 +195,9 @@
         <div class="project-hero fade-in">
             <a href="../../index.html#projects" class="back-link">← Back to Projects</a>
             <h1 class="gradient-text">Enhancing CycleNet for Time Series Forecasting</h1>
-            <div class="author-list">
+            <!-- <div class="author-list">
                 Project done by Milosh Devic, Amin Darabi, Chirag Goel and Aayush Bajaj
-            </div>
+            </div> -->
             <div class="project-meta">
                 <span><i class="fas fa-university"></i> MILA Institute / Université de Montréal</span>
                 <span><i class="far fa-calendar-alt"></i> Fall 2024</span>
@@ -235,7 +235,8 @@
                     recurrent cycles.
                 </p>
                 <div class="figure-container">
-                    <img src="LTSF.png" alt="Shared daily periodic patterns">
+                    <img src="LTSF.png" alt="Shared daily periodic patterns"
+                        style="max-width: 65%; margin: 0 auto; display: block;">
                     <p class="figure-caption">Figure 1: Shared daily periodic patterns present in the Electricity
                         dataset.</p>
                 </div>
@@ -254,7 +255,8 @@
                         or MLP) to focus on non-periodic variations.</li>
                 </ol>
                 <div class="figure-container">
-                    <img src="cyclenet_architecture.png" alt="CycleNet Architecture">
+                    <img src="cyclenet_architecture.png" alt="CycleNet Architecture"
+                        style="max-width: 65%; margin: 0 auto; display: block;">
                     <p class="figure-caption">Figure 2: CycleNet Architecture showing the RCF module and backbone
                         options.</p>
                 </div>
@@ -270,7 +272,8 @@
                     each sliding window, enabling it to model evolving relationships between channels over time.
                 </p>
                 <div class="figure-container">
-                    <img src="cyclenet_gnn.png" alt="CycleNet/TimeGNN Architecture">
+                    <img src="cyclenet_gnn.png" alt="CycleNet/TimeGNN Architecture"
+                        style="max-width: 65%; margin: 0 auto; display: block;">
                     <p class="figure-caption">Figure 3: CycleNet/TimeGNN Architecture.</p>
                 </div>
 
@@ -282,7 +285,8 @@
                         Log-Likelihood (GaussianNLL)</strong> loss for training.
                 </p>
                 <div class="figure-container">
-                    <img src="probablistic-cyclenet.png" alt="Probabilistic CycleNet Architecture">
+                    <img src="probablistic-cyclenet.png" alt="Probabilistic CycleNet Architecture"
+                        style="max-width: 65%; margin: 0 auto; display: block;">
                     <p class="figure-caption">Figure 4: Probabilistic CycleNet Architecture with dual-output MLP for
                         mean and variance.</p>
                 </div>
@@ -401,14 +405,14 @@
                     particularly in the Electricity dataset, where it significantly outperformed the original backbone.
                 </p>
 
-                <div class="grid-figures">
+                <!-- <div class="grid-figures">
                     <div class="figure-container">
                         <img src="training_loss_curves_ettm1.png" alt="Training Curves ETTm1">
                     </div>
                     <div class="figure-container">
                         <img src="training_loss_curves_ettm2.png" alt="Training Curves ETTm2">
                     </div>
-                </div>
+                </div> -->
             </section>
 
             <section class="project-section hidden">
@@ -425,10 +429,10 @@
                         class="btn btn-primary">
                         <i class="fab fa-github"></i> Source Code
                     </a>
-                    <a href="CycleNet.pdf" target="_blank" class="btn">
+                    <a href="CycleNet.pdf" target="_blank" class="btn btn-primary">
                         <i class="far fa-file-pdf"></i> Full Report
                     </a>
-                    <a href="cyclenet_poster.png" target="_blank" class="btn">
+                    <a href="cyclenet_poster.png" target="_blank" class="btn btn-primary">
                         <i class="far fa-image"></i> Project Poster
                     </a>
                 </div>
